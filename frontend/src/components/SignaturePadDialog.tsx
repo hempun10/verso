@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Eraser, Loader2, PenTool, Trash2, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cropCanvasToTrimmedPng } from "@/lib/canvas";
 import { cn } from "@/lib/utils";
 import type { AssetItem } from "@/types";
 
@@ -61,50 +63,6 @@ interface SignaturePadDialogProps {
   onDeleteSavedSignature: (assetId: string) => Promise<void>;
 }
 
-function cropCanvasToPng(canvas: HTMLCanvasElement): {
-  dataUrl: string;
-  width: number;
-  height: number;
-} | null {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  const { width, height } = canvas;
-  const imgData = ctx.getImageData(0, 0, width, height).data;
-
-  let minX = width;
-  let minY = height;
-  let maxX = 0;
-  let maxY = 0;
-  let hasInk = false;
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (imgData[(y * width + x) * 4 + 3] > 8) {
-        hasInk = true;
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-    }
-  }
-  if (!hasInk) return null;
-
-  const pad = 12;
-  const sx = Math.max(0, minX - pad);
-  const sy = Math.max(0, minY - pad);
-  const sw = Math.min(width - sx, maxX - minX + 1 + pad * 2);
-  const sh = Math.min(height - sy, maxY - minY + 1 + pad * 2);
-
-  const out = document.createElement("canvas");
-  out.width = sw;
-  out.height = sh;
-  const outCtx = out.getContext("2d");
-  if (!outCtx) return null;
-  outCtx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-  return { dataUrl: out.toDataURL("image/png"), width: sw, height: sh };
-}
-
 function renderTypedSignaturePng(
   text: string,
   fontCss: string,
@@ -122,7 +80,7 @@ function renderTypedSignaturePng(
   ctx.fillStyle = color;
   ctx.textBaseline = "middle";
   ctx.fillText(clean, 20, 55);
-  return cropCanvasToPng(canvas);
+  return cropCanvasToTrimmedPng(canvas, 12);
 }
 
 export function SignaturePadDialog({
@@ -157,12 +115,13 @@ export function SignaturePadDialog({
     setHasStrokes(false);
   };
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
       setHasStrokes(false);
       setSigName("");
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -230,7 +189,7 @@ export function SignaturePadDialog({
     let result: { dataUrl: string; width: number; height: number } | null = null;
     if (tab === "draw") {
       if (!canvasRef.current) return;
-      result = cropCanvasToPng(canvasRef.current);
+      result = cropCanvasToTrimmedPng(canvasRef.current, 12);
     } else if (tab === "type") {
       const font =
         TYPE_FONTS.find((f) => f.id === typeFontId) ?? TYPE_FONTS[0];
@@ -262,7 +221,7 @@ export function SignaturePadDialog({
     TYPE_FONTS.find((f) => f.id === typeFontId) ?? TYPE_FONTS[0];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Signature Pad</DialogTitle>
@@ -436,15 +395,12 @@ export function SignaturePadDialog({
                 ))}
               </div>
             ) : savedSignatures.length === 0 ? (
-              <div className="flex h-[170px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-input bg-secondary/60 text-center">
-                <p className="text-xs font-medium text-foreground">
-                  No saved signatures yet
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  Draw or type a signature and keep &ldquo;Save to library&rdquo;
-                  checked to reuse it anytime.
-                </p>
-              </div>
+              <EmptyState
+                compact
+                className="h-[170px]"
+                title="No saved signatures yet"
+                description='Draw or type a signature and keep "Save to library" checked to reuse it anytime.'
+              />
             ) : (
               <div className="grid max-h-[240px] grid-cols-2 gap-2.5 overflow-y-auto pr-1">
                 {savedSignatures.map((sig) => {

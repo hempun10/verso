@@ -39,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FileDropOverlay } from "@/components/ui/file-drop-overlay";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -46,6 +47,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useWindowKeyDown } from "@/hooks/useKeyboardShortcuts";
+import { useWindowFileDrop } from "@/hooks/useWindowFileDrop";
+import { isEditableTarget } from "@/lib/dom";
+import { formatBytes, formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   formatFileSize,
@@ -98,34 +103,7 @@ interface DashboardPageProps {
   onDismissError: () => void;
 }
 
-function formatStorageSize(bytes: number): string {
-  if (bytes >= 1_000_000_000) {
-    const gb = bytes / 1_000_000_000;
-    return `${gb >= 10 || Number.isInteger(gb) ? gb.toFixed(0) : gb.toFixed(1)} GB`;
-  }
-  if (bytes >= 1_000_000) {
-    const mb = bytes / 1_000_000;
-    return `${mb >= 100 || Number.isInteger(mb) ? mb.toFixed(0) : mb.toFixed(1)} MB`;
-  }
-  if (bytes >= 1_000) {
-    return `${Math.round(bytes / 1_000)} KB`;
-  }
-  return `${bytes} B`;
-}
-
-function formatRelativeTime(timestampSec: number): string {
-  if (!timestampSec) return "";
-  const diffSec = Math.max(0, Math.floor(Date.now() / 1000 - timestampSec));
-  if (diffSec < 60) return "Just now";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  const days = Math.floor(diffSec / 86400);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestampSec * 1000).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
+const formatStorageSize = formatBytes;
 
 export function DashboardPage({
   documents,
@@ -164,10 +142,6 @@ export function DashboardPage({
   const [suggestedFilesOpen, setSuggestedFilesOpen] = useState(true);
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  // Whole-page file drag & drop state (uses depth counter so child transitions never flicker)
-  const [pageDragging, setPageDragging] = useState(false);
-  const dragDepthRef = useRef(0);
 
   // Right-click custom context menu
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -224,145 +198,72 @@ export function DashboardPage({
       ? folderMap.get(uploadTargetFolderId)!.name
       : "My Drive";
 
-  // Keep refs fresh for window-level drag-and-drop listeners
-  const uploadHandlerRef = useRef({
-    onUploadFiles,
-    targetFolderId: uploadTargetFolderId,
-  });
-  uploadHandlerRef.current = {
-    onUploadFiles,
-    targetFolderId: uploadTargetFolderId,
-  };
-
   // Whole-page OS file drag-and-drop (anywhere on the browser window)
+  const pageDragging = useWindowFileDrop({
+    onDropFiles: (files) => onUploadFiles(files, uploadTargetFolderId),
+  });
+
+  // Dismiss open context menu on outside click or scroll (only subscribed while open)
   useEffect(() => {
-    const hasFiles = (e: DragEvent) =>
-      Array.from(e.dataTransfer?.types ?? []).includes("Files");
-
-    const onDragEnter = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      e.preventDefault();
-      dragDepthRef.current += 1;
-      setPageDragging(true);
-    };
-    const onDragOver = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
-    };
-    const onDragLeave = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      e.preventDefault();
-      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-      if (dragDepthRef.current === 0) {
-        setPageDragging(false);
-      }
-    };
-    const onDrop = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      e.preventDefault();
-      dragDepthRef.current = 0;
-      setPageDragging(false);
-      const dropped = Array.from(e.dataTransfer?.files ?? []);
-      if (dropped.length > 0) {
-        uploadHandlerRef.current.onUploadFiles(
-          dropped,
-          uploadHandlerRef.current.targetFolderId,
-        );
-      }
-    };
-
-    window.addEventListener("dragenter", onDragEnter);
-    window.addEventListener("dragover", onDragOver);
-    window.addEventListener("dragleave", onDragLeave);
-    window.addEventListener("drop", onDrop);
-    return () => {
-      window.removeEventListener("dragenter", onDragEnter);
-      window.removeEventListener("dragover", onDragOver);
-      window.removeEventListener("dragleave", onDragLeave);
-      window.removeEventListener("drop", onDrop);
-    };
-  }, []);
-
-  // Dashboard keyboard shortcuts: ⌘K or / search, N new folder, U upload PDF, G grid/list, R refresh, Backspace up folder
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      const keyLower = e.key.toLowerCase();
-
-      if (mod && keyLower === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        return;
-      }
-      if (e.key === "Escape") {
-        setContextMenu(null);
-        return;
-      }
-
-      const target = e.target as HTMLElement | null;
-      const isTyping = Boolean(
-        target &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.tagName === "SELECT" ||
-            target.isContentEditable),
-      );
-      if (isTyping || mod || e.altKey) return;
-      if (newFolderOpen || renameTarget || moveTarget) return;
-
-      if (e.key === "/") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (keyLower === "n") {
-        e.preventDefault();
-        setNewFolderParentId(uploadTargetFolderId);
-        setNewFolderName("");
-        setNewFolderOpen(true);
-        setNewMenuOpen(false);
-        setContextMenu(null);
-      } else if (keyLower === "u") {
-        e.preventDefault();
-        setNewMenuOpen(false);
-        setContextMenu(null);
-        onChooseFile(uploadTargetFolderId);
-      } else if (keyLower === "g") {
-        e.preventDefault();
-        setViewMode((m) => (m === "grid" ? "list" : "grid"));
-      } else if (keyLower === "r") {
-        e.preventDefault();
-        onRefresh();
-      } else if (
-        e.key === "Backspace" &&
-        section === "drive" &&
-        activeFolderId
-      ) {
-        e.preventDefault();
-        const cur = folderMap.get(activeFolderId);
-        onSelectFolder(cur?.parent_id ?? null);
-      }
-    };
+    if (!contextMenu) return;
     const closeMenu = () => setContextMenu(null);
-    window.addEventListener("keydown", onKeyDown);
     window.addEventListener("click", closeMenu);
     window.addEventListener("scroll", closeMenu, true);
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("click", closeMenu);
       window.removeEventListener("scroll", closeMenu, true);
     };
-  }, [
-    activeFolderId,
-    folderMap,
-    moveTarget,
-    newFolderOpen,
-    onChooseFile,
-    onRefresh,
-    onSelectFolder,
-    renameTarget,
-    section,
-    uploadTargetFolderId,
-  ]);
+  }, [contextMenu]);
+
+  // Dashboard keyboard shortcuts: ⌘K or / search, N new folder, U upload, G grid/list, R refresh, Backspace up folder
+  useWindowKeyDown((e) => {
+    const mod = e.metaKey || e.ctrlKey;
+    const keyLower = e.key.toLowerCase();
+
+    if (mod && keyLower === "k") {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+      return;
+    }
+    if (e.key === "Escape") {
+      setContextMenu(null);
+      return;
+    }
+
+    if (isEditableTarget(e.target) || mod || e.altKey) return;
+    if (newFolderOpen || renameTarget || moveTarget) return;
+
+    if (e.key === "/") {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+    } else if (keyLower === "n") {
+      e.preventDefault();
+      setNewFolderParentId(uploadTargetFolderId);
+      setNewFolderName("");
+      setNewFolderOpen(true);
+      setNewMenuOpen(false);
+      setContextMenu(null);
+    } else if (keyLower === "u") {
+      e.preventDefault();
+      setNewMenuOpen(false);
+      setContextMenu(null);
+      onChooseFile(uploadTargetFolderId);
+    } else if (keyLower === "g") {
+      e.preventDefault();
+      setViewMode((m) => (m === "grid" ? "list" : "grid"));
+    } else if (keyLower === "r") {
+      e.preventDefault();
+      onRefresh();
+    } else if (
+      e.key === "Backspace" &&
+      section === "drive" &&
+      activeFolderId
+    ) {
+      e.preventDefault();
+      const cur = folderMap.get(activeFolderId);
+      onSelectFolder(cur?.parent_id ?? null);
+    }
+  });
 
   const openContextMenu = (e: React.MouseEvent, target: ContextMenuTarget) => {
     e.preventDefault();
@@ -1661,26 +1562,11 @@ export function DashboardPage({
       </div>
 
       {/* Whole-Page Drag-and-Drop Overlay */}
-      {pageDragging && (
-        <div
-          data-page-drop-overlay="true"
-          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[#08090a]/80 p-6 backdrop-blur-xs"
-        >
-          <div className="flex w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#7170ff] bg-[#0f1011] px-8 py-12 text-center shadow-2xl">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7170ff]/15 text-[#7170ff]">
-              <Upload className="h-6 w-6" />
-            </div>
-            <div className="text-base font-semibold text-[#f7f8f8]">
-              Drop PDFs or images to upload into {uploadTargetLabel}
-            </div>
-            <p className="text-xs text-[#a1a1aa] tabular-nums">
-              Up to {MAX_BATCH_UPLOAD_FILES} files at once · PDF up to{" "}
-              {formatFileSize(uploadLimits.max_pdf_bytes)} · Images up to{" "}
-              {formatFileSize(uploadLimits.max_image_bytes)}
-            </p>
-          </div>
-        </div>
-      )}
+      <FileDropOverlay
+        visible={pageDragging}
+        title={`Drop PDFs or images to upload into ${uploadTargetLabel}`}
+        subtitle={`Up to ${MAX_BATCH_UPLOAD_FILES} files at once · PDF up to ${formatFileSize(uploadLimits.max_pdf_bytes)} · Images up to ${formatFileSize(uploadLimits.max_image_bytes)}`}
+      />
 
       {/* Right-Click Context Menu */}
       {contextMenu && (

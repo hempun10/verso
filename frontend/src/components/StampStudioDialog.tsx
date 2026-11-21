@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  AlertCircle,
-  Check,
-  Dices,
-  Download,
-  Loader2,
-  Stamp,
-  Upload,
-} from "lucide-react";
+import { Check, Dices, Download, Loader2, Stamp, Upload } from "lucide-react";
 import { extractStampMask } from "@/api";
+import { AlertBanner } from "@/components/ui/alert-banner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -19,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { stripFileExtension, triggerDownload } from "@/lib/format";
 import {
   exportStampPng,
   renderStampToCanvas,
@@ -101,14 +95,22 @@ export function StampStudioDialog({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
 
-  const [sourceBlob, setSourceBlob] = useState<Blob | null>(null);
-  const [sourceLabel, setSourceLabel] = useState<string>("");
+  const [sourceBlob, setSourceBlob] = useState<Blob | null>(() => initialFile);
+  const [sourceLabel, setSourceLabel] = useState<string>(() =>
+    initialFile
+      ? initialFile.name
+      : initialImageUrl
+        ? initialName || "Saved image"
+        : "",
+  );
   const [extractMode, setExtractMode] = useState<StampExtractMode>("ink");
   const [sensitivity, setSensitivity] = useState<number>(52);
   const [removeInnerWhite, setRemoveInnerWhite] = useState<boolean>(true);
 
   const [maskImg, setMaskImg] = useState<HTMLImageElement | null>(null);
-  const [extracting, setExtracting] = useState<boolean>(false);
+  const [extracting, setExtracting] = useState<boolean>(() =>
+    Boolean(initialImageUrl && !initialFile),
+  );
   const [extractError, setExtractError] = useState<string | null>(null);
 
   const [config, setConfig] = useState<StampConfig>(DEFAULT_CONFIG);
@@ -117,58 +119,43 @@ export function StampStudioDialog({
     "paper",
   );
   const [saveToLibrary, setSaveToLibrary] = useState<boolean>(true);
-  const [stampName, setStampName] = useState<string>("");
+  const [stampName, setStampName] = useState<string>(() => {
+    if (initialFile) {
+      const base = stripFileExtension(initialFile.name, "");
+      return base ? `${base} Stamp` : "Official Stamp";
+    }
+    if (initialImageUrl && initialName) {
+      return `${initialName} Stamp`;
+    }
+    return "Official Stamp";
+  });
   const [saving, setSaving] = useState<boolean>(false);
 
-  // Sync initial file or saved image URL when dialog opens.
+  // Fetch saved library asset bytes only when opened from an existing library image URL.
   useEffect(() => {
-    if (!open) return;
+    if (!open || initialFile || !initialImageUrl) return;
+    const controller = new AbortController();
+    setExtracting(true);
     setExtractError(null);
-    if (initialFile) {
-      setSourceBlob(initialFile);
-      const cleanName = initialFile.name.replace(/\.[^.]+$/, "");
-      setSourceLabel(initialFile.name);
-      setStampName(cleanName ? `${cleanName} Stamp` : "Official Stamp");
-      return;
-    }
-    if (initialImageUrl) {
-      let cancelled = false;
-      setExtracting(true);
-      setSourceLabel(initialName || "Saved image");
-      setStampName(initialName ? `${initialName} Stamp` : "Official Stamp");
-      fetch(initialImageUrl)
-        .then((res) => {
-          if (!res.ok) throw new Error("Could not load saved image.");
-          return res.blob();
-        })
-        .then((blob) => {
-          if (!cancelled) setSourceBlob(blob);
-        })
-        .catch((err: unknown) => {
-          if (!cancelled) {
-            setExtractError(
-              err instanceof Error ? err.message : "Could not load image.",
-            );
-            setExtracting(false);
-          }
-        });
-      return () => {
-        cancelled = true;
-      };
-    }
-    // Fresh open with no source image yet.
-    setSourceBlob(null);
-    setSourceLabel("");
-    setMaskImg(null);
-    setStampName("Official Stamp");
-  }, [open, initialFile, initialImageUrl, initialName]);
+    fetch(initialImageUrl, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error("Could not load saved image.");
+        return res.blob();
+      })
+      .then((blob) => setSourceBlob(blob))
+      .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
+        setExtractError(
+          err instanceof Error ? err.message : "Could not load image.",
+        );
+        setExtracting(false);
+      });
+    return () => controller.abort();
+  }, [open, initialFile, initialImageUrl]);
 
   // Run backend OpenCV pixel extraction whenever source image or extraction knobs change (debounced).
   useEffect(() => {
-    if (!open || !sourceBlob) {
-      if (!sourceBlob) setMaskImg(null);
-      return;
-    }
+    if (!open || !sourceBlob) return;
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       setExtracting(true);
@@ -226,7 +213,7 @@ export function StampStudioDialog({
     }
     setSourceBlob(file);
     setSourceLabel(file.name);
-    const base = file.name.replace(/\.[^.]+$/, "");
+    const base = stripFileExtension(file.name, "");
     if (base) setStampName(`${base} Stamp`);
   };
 
@@ -239,13 +226,10 @@ export function StampStudioDialog({
   const handleDownloadPng = () => {
     const exported = exportStampPng(maskImg, config);
     if (!exported) return;
-    const a = document.createElement("a");
     const slug = (stampName.trim() || "official-stamp")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-");
-    a.href = exported.dataUrl;
-    a.download = `${slug}.png`;
-    a.click();
+    triggerDownload(exported.dataUrl, `${slug}.png`);
   };
 
   const handlePlace = async () => {
@@ -433,15 +417,7 @@ export function StampStudioDialog({
               </div>
             </div>
 
-            {extractError && (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg border border-destructive/35 bg-destructive/12 px-3 py-2 text-xs text-[#f7d8d2]"
-              >
-                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
-                <span>{extractError}</span>
-              </div>
-            )}
+            {extractError && <AlertBanner message={extractError} />}
           </div>
 
           {/* Right: Extraction & Seal Controls */}

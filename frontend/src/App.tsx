@@ -141,6 +141,15 @@ import {
   signOutEverywhere,
   startAppwriteOAuth,
 } from "@/lib/auth";
+import { useDebouncedAutoSave } from "@/hooks/useDebouncedSave";
+import { useHistory } from "@/hooks/useHistory";
+import { useWindowKeyDown } from "@/hooks/useKeyboardShortcuts";
+import { isEditableTarget } from "@/lib/dom";
+import {
+  readFileAsDataUrl,
+  stripFileExtension,
+  triggerDownload,
+} from "@/lib/format";
 import {
   applyStyleToRange,
   cssFontStack,
@@ -324,9 +333,15 @@ export function App() {
   ]);
 
   // Unified lossless undo/redo history for both text edits and overlays.
-  const [history, setHistory] = useState<HistorySnapshot[]>([EMPTY_SNAPSHOT]);
-  const [historyPos, setHistoryPos] = useState(0);
-  const currentSnapshot = history[historyPos] ?? EMPTY_SNAPSHOT;
+  const {
+    present: currentSnapshot,
+    canUndo,
+    canRedo,
+    push: pushSnapshot,
+    undo,
+    redo,
+    reset: resetHistory,
+  } = useHistory<HistorySnapshot>(EMPTY_SNAPSHOT);
   const editsMap = currentSnapshot.edits;
   const allOverlays = currentSnapshot.overlays;
 
@@ -443,8 +458,7 @@ export function App() {
         setCroppingOverlayId(null);
         setDraftCrop(null);
         setToolMode("select");
-        setHistory([restoredSnapshot]);
-        setHistoryPos(0);
+        resetHistory(restoredSnapshot);
         setSaveStatus("saved");
         updateUrlParams(detail.doc_id, shareToken);
       } catch (err: unknown) {
@@ -457,7 +471,7 @@ export function App() {
         setBusy(null);
       }
     },
-    [],
+    [resetHistory],
   );
 
   // Initial boot: fonts, auth config, session restore, workspace list, URL doc deep-link.
@@ -542,16 +556,14 @@ export function App() {
     [pageOverlays, selectedOverlayId],
   );
 
-  const canUndo = historyPos > 0;
-  const canRedo = historyPos < history.length - 1;
+  const serializedDocState = useMemo(
+    () => JSON.stringify({ edits: allEdits, overlays: allOverlays }),
+    [allEdits, allOverlays],
+  );
 
   const persistCurrentState = useCallback(async () => {
     if (!doc) return;
-    const serialized = JSON.stringify({
-      edits: allEdits,
-      overlays: allOverlays,
-    });
-    if (serialized === lastSavedKeyRef.current) {
+    if (serializedDocState === lastSavedKeyRef.current) {
       setSaveStatus("saved");
       return;
     }
@@ -563,7 +575,7 @@ export function App() {
         allOverlays,
         activeShareToken,
       );
-      lastSavedKeyRef.current = serialized;
+      lastSavedKeyRef.current = serializedDocState;
       setDocMeta((m) => ({
         ...m,
         version: res.version,
@@ -575,35 +587,24 @@ export function App() {
       setSaveStatus("idle");
       setError(err instanceof Error ? err.message : "Failed to save session.");
     }
-  }, [activeShareToken, allEdits, allOverlays, doc, refreshWorkspace]);
+  }, [
+    activeShareToken,
+    allEdits,
+    allOverlays,
+    doc,
+    refreshWorkspace,
+    serializedDocState,
+  ]);
 
   // Debounced auto-save whenever edits or overlays change.
-  useEffect(() => {
-    if (!doc) return;
-    const serialized = JSON.stringify({
-      edits: allEdits,
-      overlays: allOverlays,
-    });
-    if (serialized === lastSavedKeyRef.current) return;
-    setSaveStatus("idle");
-    const timer = window.setTimeout(() => {
-      void persistCurrentState();
-    }, 1100);
-    return () => window.clearTimeout(timer);
-  }, [allEdits, allOverlays, doc, persistCurrentState]);
-
-  const pushSnapshot = useCallback(
-    (updater: (prev: HistorySnapshot) => HistorySnapshot) => {
-      setHistory((prev) => {
-        const current = prev[historyPos] ?? EMPTY_SNAPSHOT;
-        const next = updater(current);
-        const sliced = prev.slice(0, historyPos + 1);
-        return [...sliced, next];
-      });
-      setHistoryPos((pos) => pos + 1);
-    },
-    [historyPos],
-  );
+  useDebouncedAutoSave({
+    enabled: Boolean(doc),
+    serializedKey: serializedDocState,
+    lastSavedKey: lastSavedKeyRef.current,
+    delayMs: 1100,
+    onDirty: () => setSaveStatus("idle"),
+    onSave: persistCurrentState,
+  });
 
   const pushEdits = useCallback(
     (updater: (prev: EditMap) => EditMap) => {
@@ -655,8 +656,7 @@ export function App() {
   }, [selectedId]);
 
   // Global keyboard shortcuts: tools, view, overlay nudge/rotate/crop, save, undo/redo, export, ?.
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+  useWindowKeyDown((e) => {
       const mod = e.metaKey || e.ctrlKey;
       const keyLower = e.key.toLowerCase();
 
@@ -672,15 +672,7 @@ export function App() {
         return;
       }
 
-      const target = e.target as HTMLElement | null;
-      const isEditingText = Boolean(
-        target &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.tagName === "SELECT" ||
-            target.isContentEditable),
-      );
-      if (isEditingText) return;
+      if (isEditableTarget(e.target)) return;
 
       // Ignore single-key shortcuts when a modal dialog is open.
       const anyDialogOpen =
@@ -706,15 +698,15 @@ export function App() {
       if (mod && keyLower === "z") {
         e.preventDefault();
         if (e.shiftKey) {
-          setHistoryPos((p) => Math.min(history.length - 1, p + 1));
+          redo();
         } else {
-          setHistoryPos((p) => Math.max(0, p - 1));
+          undo();
         }
         return;
       }
       if (e.ctrlKey && !e.metaKey && keyLower === "y") {
         e.preventDefault();
-        setHistoryPos((p) => Math.min(history.length - 1, p + 1));
+        redo();
         return;
       }
 
@@ -910,32 +902,9 @@ export function App() {
           );
         }
       }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    authOpen,
-    croppingOverlayId,
-    currentPage,
-    doc,
-    docsOpen,
-    draftCrop,
-    history.length,
-    imageOpen,
-    legalTab,
-    pageOverlays,
-    pendingUploadFile,
-    persistCurrentState,
-    pushOverlays,
-    selectedOverlayId,
-    shareOpen,
-    shortcutsOpen,
-    signOpen,
-    stampOpen,
-    toolMode,
-  ]);
+  });
 
-  // Clear stale blocks & preview whenever switching documents or pages.
+  // Load blocks & clear stale page state whenever document or page changes.
   useEffect(() => {
     setBlocks([]);
     setPreview((prev) => {
@@ -945,10 +914,6 @@ export function App() {
       }
       return prev;
     });
-  }, [currentPageKey]);
-
-  // Load blocks whenever document or page changes.
-  useEffect(() => {
     if (!doc) return;
     let cancelled = false;
     setSelectedId(null);
@@ -977,7 +942,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [activeShareToken, doc, pageIndex]);
+  }, [activeShareToken, currentPageKey, doc, pageIndex]);
 
   // Refresh server-rendered WYSIWYG page preview whenever page or pageEdits change.
   useEffect(() => {
@@ -1077,8 +1042,7 @@ export function App() {
       setCroppingOverlayId(null);
       setDraftCrop(null);
       setToolMode("select");
-      setHistory([EMPTY_SNAPSHOT]);
-      setHistoryPos(0);
+      resetHistory(EMPTY_SNAPSHOT);
       setSaveStatus("saved");
       updateUrlParams(summary.doc_id, null);
       void refreshWorkspace();
@@ -1243,18 +1207,10 @@ export function App() {
     if (validationError) {
       throw new Error(validationError);
     }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () =>
-        typeof reader.result === "string"
-          ? resolve(reader.result)
-          : reject(new Error("Could not read file."));
-      reader.onerror = () => reject(new Error("Could not read file."));
-      reader.readAsDataURL(file);
-    });
+    const dataUrl = await readFileAsDataUrl(file);
     const saved = await createAsset(
       "image",
-      file.name.replace(/\.[^.]+$/, "") || "Image",
+      stripFileExtension(file.name, "Image"),
       dataUrl,
     );
     setAssets((prev) => [saved, ...prev]);
@@ -1367,8 +1323,7 @@ export function App() {
     setCurrentFolderId(null);
     setSelectedId(null);
     setSelectedOverlayId(null);
-    setHistory([EMPTY_SNAPSHOT]);
-    setHistoryPos(0);
+    resetHistory(EMPTY_SNAPSHOT);
     setView("landing");
     updateUrlParams(null, null, "landing");
   };
@@ -1470,8 +1425,7 @@ export function App() {
       setBlocks([]);
       setSelectedId(null);
       setSelectedOverlayId(null);
-      setHistory([EMPTY_SNAPSHOT]);
-      setHistoryPos(0);
+      resetHistory(EMPTY_SNAPSHOT);
       updateUrlParams(null, null);
     }
   };
@@ -1672,7 +1626,7 @@ export function App() {
     );
     setError(null);
     try {
-      const stem = doc.filename.replace(/\.[^.]+$/, "") || "document";
+      const stem = stripFileExtension(doc.filename, "document");
       const blob =
         targetFormat === "png"
           ? await exportEditedImage(
@@ -1689,12 +1643,7 @@ export function App() {
               allOverlays,
               activeShareToken,
             );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${stem}-edited.${targetFormat}`;
-      a.click();
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, `${stem}-edited.${targetFormat}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Export failed.");
     } finally {
@@ -2085,7 +2034,7 @@ export function App() {
                         size="icon-sm"
                         aria-label="Undo"
                         disabled={!canUndo}
-                        onClick={() => setHistoryPos((p) => Math.max(0, p - 1))}
+                        onClick={undo}
                       >
                         <Undo2 className="h-3.5 w-3.5" />
                       </Button>
@@ -2100,11 +2049,7 @@ export function App() {
                         size="icon-sm"
                         aria-label="Redo"
                         disabled={!canRedo}
-                        onClick={() =>
-                          setHistoryPos((p) =>
-                            Math.min(history.length - 1, p + 1),
-                          )
-                        }
+                        onClick={redo}
                       >
                         <Redo2 className="h-3.5 w-3.5" />
                       </Button>

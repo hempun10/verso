@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
@@ -24,6 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/validation";
 import type { UploadLimits, UserInfo } from "@/types";
@@ -521,17 +522,10 @@ export function LandingPage({
   error,
   onDismissError,
 }: LandingPageProps) {
-  const [scrolled, setScrolled] = useState(false);
+  const scrolled = useScrolled(12);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const navLinks = [
     { href: "#features", label: "Features" },

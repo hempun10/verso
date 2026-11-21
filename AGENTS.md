@@ -19,9 +19,11 @@ This file gives AI coding assistants the architecture map, commands, invariants,
   - `src/editpdf/models.py`: Pydantic v2 schemas (keep aligned with `frontend/src/types.ts`)
   - `tests/`: Pytest suite covering engines, overlays, folders, images, stamps, security, and production hardening
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`)
-  - `src/App.tsx`: Top-level state (`landing` / `dashboard` / `editor`), undo/redo history, auto-save, batch uploads, lazy-loaded modals
+  - `src/App.tsx`: Top-level state (`landing` / `dashboard` / `editor`), auto-save, batch uploads, lazy-loaded modals
   - `src/api.ts`: `apiFetch` wrapper (`credentials: "include"`, 11-min Appwrite JWT auto-refresh, 401 single retry, `VITE_API_BASE_URL`)
-  - `src/lib/`: `auth.ts`, `validation.ts`, `runs.ts`, `stampRenderer.ts`, `utils.ts`
+  - `src/hooks/`: Reusable portable hooks — `useHistory`, `useWindowFileDrop`, `useWindowKeyDown`, `useDebouncedAutoSave`, `useScrolled`
+  - `src/lib/`: `auth.ts`, `validation.ts`, `format.ts`, `canvas.ts`, `dom.ts`, `runs.ts`, `stampRenderer.ts`, `utils.ts`
+  - `src/components/ui/`: shadcn primitives + reusable `AlertBanner`, `EmptyState`, `FileDropOverlay`, `FileTypeIcon`/`FileTypeBadge`, `GoogleIcon`/`GitHubIcon`
   - `src/components/`: `LandingPage.tsx`, `DashboardPage.tsx`, `OverlayLayer.tsx`, `InspectorBar.tsx`, `OverlayInspectorBar.tsx`, `StampStudioDialog.tsx`, `ImageLibraryDialog.tsx`, `SignaturePadDialog.tsx`, `AuthDialog.tsx`, `WorkspaceDialogs.tsx`, `LegalDialog.tsx`, `ShortcutsDialog.tsx`, `UploadQueueToast.tsx`, `ErrorBoundary.tsx`, `BrandLogo.tsx`
 - `.agents/skills/` — On-demand domain skills (load before making substantial changes in their area):
   - `verso-ui-design`: Dark UI palette, Radix/shadcn patterns, copy rules

@@ -24,7 +24,22 @@ description: >-
 - **Validate files before network upload**: Always run `validateDocumentFileClient` or `validateImageFileClient` (`frontend/src/lib/validation.ts`) before `FormData` upload so invalid magic bytes or oversized files fail instantly with 0 bytes sent.
 - **Production Bundle Hygiene**: Gate any local-only dev UI behind `import.meta.env.DEV` so Vite tree-shakes it completely out of `dist/`.
 
-## 3. Performance & Memory Hygiene
+## 3. Effect Hygiene & Reusable Hooks / Utilities
+
+- **Avoid unnecessary `useEffect`**: Never use `useEffect` to reset modal state when `open` changes or to derive state from props — reset state in `onOpenChange` handlers, initialize from props on conditional mount (`{open && <Dialog ... />}`), and derive values during render or with `useMemo`. Only use `useEffect` to synchronize with genuine external systems (network requests, DOM/window events, timers, Canvas 2D, third-party SDKs).
+- **Reuse existing portable hooks (`frontend/src/hooks/`)** instead of re-implementing listeners inline:
+  - `useHistory<T>` — atomic undo/redo stack
+  - `useWindowKeyDown` — latest-ref window keydown subscription (binds once, zero dependency churn)
+  - `useWindowFileDrop` — depth-tracked OS file drag-and-drop
+  - `useDebouncedAutoSave` — dirty-checked debounced persistence
+  - `useScrolled` — passive scroll-threshold state
+- **Reuse shared pure utilities (`frontend/src/lib/`)** & **UI primitives (`frontend/src/components/ui/`)**:
+  - `format.ts` (`formatBytes`, `formatRelativeTime`, `stripFileExtension`, `readFileAsDataUrl`, `triggerDownload`)
+  - `canvas.ts` (`cropCanvasToTrimmedPng`)
+  - `dom.ts` (`isEditableTarget`)
+  - `AlertBanner`, `EmptyState`, `FileDropOverlay`, `FileTypeIcon`, `FileTypeBadge`, `GoogleIcon`, `GitHubIcon`
+
+## 4. Performance & Memory Hygiene
 
 - **Code-splitting**: Heavy secondary views and modals (`DashboardPage`, `StampStudioDialog`, `SignaturePadDialog`, `ImageLibraryDialog`, `ShortcutsDialog`, `LegalDialog`) should stay lazy-loaded with `React.lazy` + `Suspense`.
 - **Object URLs**: Always `URL.revokeObjectURL(...)` in `useEffect` cleanup or `finally` blocks when creating blob preview URLs to avoid memory leaks during page navigation.

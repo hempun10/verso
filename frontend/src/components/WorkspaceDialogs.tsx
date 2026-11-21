@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Check,
   Copy,
-  FileText,
   FolderOpen,
-  Image as ImageIcon,
   Link2,
   Loader2,
   Trash2,
@@ -19,20 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { isImageFilename } from "@/lib/validation";
+import { formatRelativeTime } from "@/lib/format";
 import type { DocumentListItem } from "@/types";
-
-function formatRelativeTime(epochSeconds: number): string {
-  if (!epochSeconds) return "";
-  const diff = Math.max(0, Math.floor(Date.now() / 1000 - epochSeconds));
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return new Date(epochSeconds * 1000).toLocaleDateString();
-}
 
 interface DocumentsDialogProps {
   open: boolean;
@@ -94,14 +85,11 @@ export function DocumentsDialog({
             ))}
           </div>
         ) : documents.length === 0 ? (
-          <div className="flex h-36 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-input bg-secondary/60 text-center">
-            <p className="text-xs font-medium text-foreground">
-              No saved documents yet
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              Upload a PDF or image to start a saved session in your workspace.
-            </p>
-          </div>
+          <EmptyState
+            compact
+            title="No saved documents yet"
+            description="Upload a PDF or image to start a saved session in your workspace."
+          />
         ) : (
           <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
             {documents.map((item) => {
@@ -122,11 +110,7 @@ export function DocumentsDialog({
                     }}
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground">
-                      {isImageFilename(item.filename) ? (
-                        <ImageIcon className="h-4 w-4 text-[#7170ff]" />
-                      ) : (
-                        <FileText className="h-4 w-4" />
-                      )}
+                      <FileTypeIcon filename={item.filename} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">

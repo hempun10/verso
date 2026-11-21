@@ -5,13 +5,11 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  FileText,
-  Image as ImageIcon,
   Loader2,
   X,
 } from "lucide-react";
+import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
-import { isImageFilename } from "@/lib/validation";
 
 export interface UploadQueueItem {
   id: string;
@@ -102,11 +100,10 @@ export function UploadQueueToast({
               className="flex items-start justify-between gap-2.5 px-3.5 py-2.5 text-xs"
             >
               <div className="flex min-w-0 flex-1 items-start gap-2">
-                {isImageFilename(item.filename) ? (
-                  <ImageIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#7170ff]" />
-                ) : (
-                  <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#62666d]" />
-                )}
+                <FileTypeIcon
+                  filename={item.filename}
+                  className="mt-0.5 h-3.5 w-3.5"
+                />
                 <div className="min-w-0 flex-1">
                   <div
                     className={cn(

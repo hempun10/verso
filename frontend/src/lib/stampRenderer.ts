@@ -1,3 +1,5 @@
+import { cropCanvasToTrimmedPng } from "@/lib/canvas";
+
 export type StampExtractMode = "ink" | "engraved" | "cutout";
 export type StampTemplate = "circle" | "oval" | "rect" | "raw";
 export type StampBorderStyle = "classic" | "dotted" | "notary";
@@ -708,47 +710,5 @@ export function exportStampPng(
 ): { dataUrl: string; width: number; height: number } | null {
   const canvas = document.createElement("canvas");
   renderStampToCanvas(canvas, maskImg, config);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-
-  const { width, height } = canvas;
-  const imgData = ctx.getImageData(0, 0, width, height).data;
-
-  let minX = width;
-  let minY = height;
-  let maxX = 0;
-  let maxY = 0;
-  let hasInk = false;
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (imgData[(y * width + x) * 4 + 3]! > 8) {
-        hasInk = true;
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-    }
-  }
-  if (!hasInk) return null;
-
-  const pad = 16;
-  const sx = Math.max(0, minX - pad);
-  const sy = Math.max(0, minY - pad);
-  const sw = Math.min(width - sx, maxX - minX + 1 + pad * 2);
-  const sh = Math.min(height - sy, maxY - minY + 1 + pad * 2);
-
-  const out = document.createElement("canvas");
-  out.width = sw;
-  out.height = sh;
-  const outCtx = out.getContext("2d");
-  if (!outCtx) return null;
-  outCtx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-
-  return {
-    dataUrl: out.toDataURL("image/png"),
-    width: sw,
-    height: sh,
-  };
+  return cropCanvasToTrimmedPng(canvas, 16);
 }

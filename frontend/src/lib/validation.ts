@@ -1,3 +1,4 @@
+import { formatBytes } from "@/lib/format";
 import type { UploadLimits } from "@/types";
 
 /**
@@ -24,16 +25,7 @@ export function isImageFilename(filename: string): boolean {
   return /\.(png|jpe?g|webp)$/i.test(filename);
 }
 
-export function formatFileSize(bytes: number): string {
-  if (bytes >= 1_000_000) {
-    const mb = bytes / 1_000_000;
-    return `${Number.isInteger(mb) ? mb : mb.toFixed(1)} MB`;
-  }
-  if (bytes >= 1_000) {
-    return `${Math.round(bytes / 1_000)} KB`;
-  }
-  return `${bytes} B`;
-}
+export const formatFileSize = formatBytes;
 
 async function hasValidImageHeader(file: File): Promise<boolean> {
   try {

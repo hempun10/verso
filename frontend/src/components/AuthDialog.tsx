@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogIn } from "lucide-react";
 import { BRAND_NAME, BrandLogo } from "@/components/BrandLogo";
 import type { LegalTab } from "@/components/LegalDialog";
@@ -13,38 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { GitHubIcon, GoogleIcon } from "@/components/ui/social-icons";
 import type { AuthConfig } from "@/types";
-
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.08 3.56-5.15 3.56-8.65z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.87-3c-1.07.72-2.45 1.14-4.06 1.14-3.12 0-5.77-2.11-6.72-4.95H1.28v3.1A12 12 0 0 0 12 24z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.28 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.38-2.28v-3.1H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.38l4-3.1z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.62l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"
-      />
-    </svg>
-  );
-}
-
-function GitHubIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
-      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.98 10.98 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.07.78 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
-    </svg>
-  );
-}
 
 interface AuthDialogProps {
   open: boolean;
@@ -82,12 +52,13 @@ export function AuthDialog({
     authConfig?.captcha_enabled && authConfig.turnstile_site_key,
   );
 
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
       setLocalError(null);
       setCaptchaToken(null);
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const submitDev = async (targetEmail: string, targetName: string) => {
     if (!targetEmail.trim()) return;
@@ -99,7 +70,7 @@ export function AuthDialog({
     setLocalError(null);
     try {
       await onDevLogin(targetEmail.trim(), targetName.trim(), captchaToken);
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (err: unknown) {
       setLocalError(err instanceof Error ? err.message : "Sign-in failed.");
       if (captchaRequired) {
@@ -112,7 +83,7 @@ export function AuthDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader className="items-center text-center sm:text-center">
           <div className="mb-1 flex items-center justify-center">

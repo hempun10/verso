@@ -1,12 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  AlertCircle,
-  ImagePlus,
-  Loader2,
-  Stamp,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { useRef, useState } from "react";
+import { ImagePlus, Loader2, Stamp, Trash2, Upload } from "lucide-react";
+import { AlertBanner } from "@/components/ui/alert-banner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -55,11 +49,12 @@ export function ImageLibraryDialog({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
       setLocalError(null);
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const handleFile = async (file: File) => {
     setLocalError(null);
@@ -72,7 +67,7 @@ export function ImageLibraryDialog({
     setUploading(true);
     try {
       await onUploadAndPlace(file);
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (err: unknown) {
       setLocalError(
         err instanceof Error ? err.message : "Failed to upload image.",
@@ -89,12 +84,12 @@ export function ImageLibraryDialog({
       setLocalError(validationError);
       return;
     }
-    onOpenChange(false);
+    handleOpenChange(false);
     onOpenStampStudio({ file });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Images, Stamps &amp; Watermarks</DialogTitle>
@@ -179,15 +174,7 @@ export function ImageLibraryDialog({
           </div>
         </div>
 
-        {localError && (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-lg border border-destructive/35 bg-destructive/12 px-3 py-2 text-xs text-[#f7d8d2]"
-          >
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
-            <span>{localError}</span>
-          </div>
-        )}
+        {localError && <AlertBanner message={localError} />}
 
         {loading && savedImages.length === 0 ? (
           <div className="space-y-2">
