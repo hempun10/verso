@@ -1,0 +1,297 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  createFolder,
+  deleteAsset,
+  deleteDocument,
+  deleteFolder,
+  devLogin,
+  fetchAuthConfig,
+  fetchCurrentUser,
+  fetchOverrideFonts,
+  fetchStorageUsage,
+  listAssets,
+  listDocuments,
+  listFolders,
+  moveDocumentToFolder,
+  updateFolder,
+} from "@/api";
+import { updateUrlParams } from "@/features/editor/types";
+import {
+  restoreAppwriteSession,
+  setDevAuthToken,
+  signOutEverywhere,
+} from "@/lib/auth";
+import { DEFAULT_UPLOAD_LIMITS } from "@/lib/validation";
+import type {
+  AssetItem,
+  AuthConfig,
+  DocumentListItem,
+  FolderItem,
+  StorageUsage,
+  UserInfo,
+} from "@/types";
+
+interface UseWorkspaceArgs {
+  hasActiveDoc: boolean;
+  activeDocId: string | null;
+  onBootLoadDoc: (docId: string, shareToken: string | null) => Promise<void>;
+  onResetDocument: () => void;
+  onError: (msg: string | null) => void;
+}
+
+export function useWorkspace({
+  hasActiveDoc,
+  activeDocId,
+  onBootLoadDoc,
+  onResetDocument,
+  onError,
+}: UseWorkspaceArgs) {
+  const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [view, setView] = useState<"landing" | "dashboard">(() =>
+    new URLSearchParams(window.location.search).get("view") === "dashboard"
+      ? "dashboard"
+      : "landing",
+  );
+  const [workspaceLoading, setWorkspaceLoading] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return Boolean(params.get("doc") || params.get("view") === "dashboard");
+  });
+  const [savedDocs, setSavedDocs] = useState<DocumentListItem[]>([]);
+  const [folders, setFolders] = useState<FolderItem[]>([]);
+  const [storageUsage, setStorageUsage] = useState<StorageUsage | null>(null);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [assets, setAssets] = useState<AssetItem[]>([]);
+  const [overrideFonts, setOverrideFonts] = useState<string[]>([
+    "helvetica",
+    "times",
+    "courier",
+    "georgia",
+    "verdana",
+    "tahoma",
+    "trebuchet",
+  ]);
+
+  const uploadLimits = authConfig?.limits ?? DEFAULT_UPLOAD_LIMITS;
+  const captchaRequired = Boolean(
+    authConfig?.captcha_enabled && authConfig.turnstile_site_key,
+  );
+  const isSignedIn = Boolean(
+    user &&
+      user.provider !== "guest" &&
+      user.id !== "guest" &&
+      !user.id.startsWith("gst_"),
+  );
+
+  const savedSignatures = useMemo(
+    () => assets.filter((a) => a.kind === "signature"),
+    [assets],
+  );
+  const savedImages = useMemo(
+    () => assets.filter((a) => a.kind === "image"),
+    [assets],
+  );
+
+  const refreshWorkspace = useCallback(async (showLoader = false) => {
+    if (showLoader) setWorkspaceLoading(true);
+    try {
+      const [docsList, foldersList, assetsList, storage] = await Promise.all([
+        listDocuments(),
+        listFolders(),
+        listAssets(),
+        fetchStorageUsage().catch(() => null),
+      ]);
+      setSavedDocs(docsList);
+      setFolders(foldersList);
+      setAssets(assetsList);
+      if (storage) setStorageUsage(storage);
+    } catch {
+      // Ignore if backend isn't ready yet.
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOverrideFonts()
+      .then(setOverrideFonts)
+      .catch(() => {});
+
+    void (async () => {
+      try {
+        const cfg = await fetchAuthConfig();
+        setAuthConfig(cfg);
+        if (cfg.mode === "appwrite") {
+          const awUser = await restoreAppwriteSession(cfg);
+          setUser(awUser ?? (await fetchCurrentUser()));
+        } else {
+          setUser(await fetchCurrentUser());
+        }
+      } catch {
+        // Keep guest mode if auth endpoint unreachable.
+      } finally {
+        setAuthLoading(false);
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const urlDoc = params.get("doc");
+      const urlShare = params.get("share");
+      const urlView = params.get("view");
+
+      if (urlDoc) {
+        await Promise.all([
+          refreshWorkspace(),
+          onBootLoadDoc(urlDoc, urlShare),
+        ]);
+      } else if (urlView === "dashboard") {
+        await refreshWorkspace(true);
+      } else {
+        setWorkspaceLoading(false);
+      }
+    })();
+  }, [onBootLoadDoc, refreshWorkspace]);
+
+  const handleDevLogin = async (
+    email: string,
+    name: string,
+    captchaToken?: string | null,
+  ) => {
+    const res = await devLogin(email, name, captchaToken);
+    setDevAuthToken(res.token);
+    setUser(res.user);
+    if (!hasActiveDoc) {
+      setView("dashboard");
+      updateUrlParams(null, null, "dashboard");
+    }
+    await refreshWorkspace(true);
+  };
+
+  const handleSignOut = async () => {
+    await signOutEverywhere();
+    const me = await fetchCurrentUser().catch(() => null);
+    setUser(me);
+    onResetDocument();
+    setSavedDocs([]);
+    setFolders([]);
+    setAssets([]);
+    setCurrentFolderId(null);
+    setView("landing");
+    updateUrlParams(null, null, "landing");
+  };
+
+  const handleCreateFolder = async (name: string, parentId: string | null) => {
+    onError(null);
+    try {
+      const created = await createFolder(name, parentId);
+      setFolders((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err.message : "Failed to create folder.");
+    }
+  };
+
+  const handleRenameFolder = async (folderId: string, name: string) => {
+    onError(null);
+    try {
+      const updated = await updateFolder(folderId, { name });
+      setFolders((prev) =>
+        prev
+          .map((f) => (f.folder_id === folderId ? updated : f))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      );
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err.message : "Failed to rename folder.");
+    }
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    onError(null);
+    try {
+      const fallbackParent =
+        folders.find((f) => f.folder_id === folderId)?.parent_id ?? null;
+      await deleteFolder(folderId);
+      setFolders((prev) =>
+        prev
+          .filter((f) => f.folder_id !== folderId)
+          .map((f) =>
+            f.parent_id === folderId ? { ...f, parent_id: fallbackParent } : f,
+          ),
+      );
+      setSavedDocs((prev) =>
+        prev.map((d) =>
+          d.folder_id === folderId ? { ...d, folder_id: fallbackParent } : d,
+        ),
+      );
+      if (currentFolderId === folderId) setCurrentFolderId(fallbackParent);
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err.message : "Failed to delete folder.");
+    }
+  };
+
+  const handleMoveDocToFolder = async (
+    docId: string,
+    folderId: string | null,
+  ) => {
+    onError(null);
+    try {
+      await moveDocumentToFolder(docId, folderId);
+      setSavedDocs((prev) =>
+        prev.map((d) =>
+          d.doc_id === docId ? { ...d, folder_id: folderId } : d,
+        ),
+      );
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err.message : "Failed to move document.");
+    }
+  };
+
+  const handleDeleteSavedDoc = async (docId: string) => {
+    await deleteDocument(docId);
+    setSavedDocs((prev) => prev.filter((d) => d.doc_id !== docId));
+    void fetchStorageUsage()
+      .then(setStorageUsage)
+      .catch(() => {});
+    if (activeDocId === docId) {
+      onResetDocument();
+      updateUrlParams(null, null);
+    }
+  };
+
+  const handleDeleteAsset = async (assetId: string) => {
+    await deleteAsset(assetId);
+    setAssets((prev) => prev.filter((a) => a.asset_id !== assetId));
+  };
+
+  return {
+    authConfig,
+    user,
+    authLoading,
+    isSignedIn,
+    view,
+    setView,
+    workspaceLoading,
+    savedDocs,
+    folders,
+    storageUsage,
+    currentFolderId,
+    setCurrentFolderId,
+    assets,
+    setAssets,
+    savedSignatures,
+    savedImages,
+    overrideFonts,
+    uploadLimits,
+    captchaRequired,
+    refreshWorkspace,
+    handleDevLogin,
+    handleSignOut,
+    handleCreateFolder,
+    handleRenameFolder,
+    handleDeleteFolder,
+    handleMoveDocToFolder,
+    handleDeleteSavedDoc,
+    handleDeleteAsset,
+  };
+}

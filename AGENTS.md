@@ -18,13 +18,20 @@ This file gives AI coding assistants the architecture map, commands, invariants,
   - `src/editpdf/config.py`: Env-driven `Settings` + production startup guards
   - `src/editpdf/models.py`: Pydantic v2 schemas (keep aligned with `frontend/src/types.ts`)
   - `tests/`: Pytest suite covering engines, overlays, folders, images, stamps, security, and production hardening
-- `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`)
-  - `src/App.tsx`: Top-level state (`landing` / `dashboard` / `editor`), auto-save, batch uploads, lazy-loaded modals
-  - `src/api.ts`: `apiFetch` wrapper (`credentials: "include"`, 11-min Appwrite JWT auto-refresh, 401 single retry, `VITE_API_BASE_URL`)
+- `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`) — every `.ts`/`.tsx` module is kept **strictly under 300 LOC** using a Bulletproof React feature-first architecture:
+  - `src/App.tsx`: Thin view router (`landing` / `dashboard` / `editor`) backed by `useAppController`
+  - `src/api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`, barrel `src/api.ts`): `apiFetch` wrapper (`credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, `VITE_API_BASE_URL`)
+  - `src/features/` — Domain-scoped hooks, sub-components, and selectors:
+    - `features/workspace/`: `useWorkspace`, `useAppController`
+    - `features/editor/`: `EditorWorkspace`, `EditorTopbar`, `EditorDocMenu`, `EditorToolGroup`, `EditorAccountMenu`, `EditorInspectors`, `EditorCanvas`, `InlineTextEditor`, `EditorBottomBar`, `EditorModals`, `TextStyleControls`, `ImageInspectorControls`, `useDocumentSession`, `usePageLoader`, `useUploadFlow`, `useEditorActions`, `useOverlayActions`, `useAssetPlacement`, `useEditorShortcuts`, plus `overlay-layer/` (`geometry.ts`, `useOverlayInteractions.ts`, `CropModeOverlay.tsx`, `OverlayItem.tsx`)
+    - `features/dashboard/`: `DashboardSidebar`, `SidebarFolderTree`, `DashboardHeader`, `DashboardCanvas`, `DashboardEmptyStates`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals`, `useDashboardState`, `selectors.ts`, `types.ts`
+    - `features/landing/`: `LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `FeatureVisuals`, `primitives.tsx`
+    - `features/stamp/`: `StampPreviewPane`, `StampControlsPane`, `StampExtractControls`, `useStampExtraction`
+    - `features/signature/`: `SignatureTabs`, `renderSignature.ts`
   - `src/hooks/`: Reusable portable hooks — `useHistory`, `useWindowFileDrop`, `useWindowKeyDown`, `useDebouncedAutoSave`, `useScrolled`
-  - `src/lib/`: `auth.ts`, `validation.ts`, `format.ts`, `canvas.ts`, `dom.ts`, `runs.ts`, `stampRenderer.ts`, `utils.ts`
-  - `src/components/ui/`: shadcn primitives + reusable `AlertBanner`, `EmptyState`, `FileDropOverlay`, `FileTypeIcon`/`FileTypeBadge`, `GoogleIcon`/`GitHubIcon`
-  - `src/components/`: `LandingPage.tsx`, `DashboardPage.tsx`, `OverlayLayer.tsx`, `InspectorBar.tsx`, `OverlayInspectorBar.tsx`, `StampStudioDialog.tsx`, `ImageLibraryDialog.tsx`, `SignaturePadDialog.tsx`, `AuthDialog.tsx`, `WorkspaceDialogs.tsx`, `LegalDialog.tsx`, `ShortcutsDialog.tsx`, `UploadQueueToast.tsx`, `ErrorBoundary.tsx`, `BrandLogo.tsx`
+  - `src/lib/`: `auth.ts`, `validation.ts`, `format.ts`, `canvas.ts`, `dom.ts`, `utils.ts`, modular `runs/` (`model.ts`, `dom.ts`) + barrel `runs.ts`, modular `stamp/` (`types.ts`, `primitives.ts`, `distress.ts`, `seals.ts`, `render.ts`) + barrel `stampRenderer.ts`
+  - `src/components/ui/`: shadcn primitives + reusable `AlertBanner`, `ColorSwatchPicker`, `EmptyState`, `FileDropOverlay`, `FileTypeIcon`/`FileTypeBadge`, `GoogleIcon`/`GitHubIcon`
+  - `src/components/`: Thin top-level shells & modals — `LandingPage.tsx`, `DashboardPage.tsx`, `OverlayLayer.tsx`, `InspectorBar.tsx`, `OverlayInspectorBar.tsx`, `StampStudioDialog.tsx`, `ImageLibraryDialog.tsx`, `SignaturePadDialog.tsx`, `AuthDialog.tsx`, `WorkspaceDialogs.tsx`, `LegalDialog.tsx`, `ShortcutsDialog.tsx`, `UploadQueueToast.tsx`, `ErrorBoundary.tsx`, `BrandLogo.tsx`
 - `.agents/skills/` — On-demand domain skills (load before making substantial changes in their area):
   - `verso-ui-design`: Dark UI palette, Radix/shadcn patterns, copy rules
   - `react-typescript-best-practices`: React 19 + strict TypeScript + Canvas/API patterns
