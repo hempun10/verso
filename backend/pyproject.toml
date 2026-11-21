@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/editpdf"]
+
+[project]
+name = "editpdf-backend"
+version = "0.4.0"
+description = "verso — Edit text in native PDFs, scans, and images with signatures, stamps, and Drive-style folders"
+readme = "../README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.115.0",
+    "fonttools>=4.55.0",
+    "httpx>=0.28.0",
+    "numpy>=2.1.0",
+    "opencv-python-headless>=4.11.0",
+    "pillow>=11.0.0",
+    "pydantic>=2.10.0",
+    "pymupdf>=1.25.0",
+    "python-multipart>=0.0.20",
+    "rapidocr-onnxruntime>=1.4.0",
+    "uvicorn[standard]>=0.34.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.0",
+    "pyright>=1.1.390",
+    "pytest>=8.3.0",
+    "ruff>=0.9.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["src", "tests"]
+typeCheckingMode = "standard"
