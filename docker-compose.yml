@@ -1,0 +1,19 @@
+services:
+  verso:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      - EDITPDF_ENV=${EDITPDF_ENV:-development}
+      - EDITPDF_AUTH_SECRET=${EDITPDF_AUTH_SECRET:-change-this-secret-in-production-32chars}
+      - EDITPDF_ENABLE_DEV_AUTH=${EDITPDF_ENABLE_DEV_AUTH:-false}
+      - EDITPDF_ALLOWED_ORIGINS=${EDITPDF_ALLOWED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+    volumes:
+      - verso_data:/app/backend/tmp
+    restart: unless-stopped
+
+volumes:
+  verso_data:
