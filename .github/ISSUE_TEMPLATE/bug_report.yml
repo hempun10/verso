@@ -1,0 +1,40 @@
+name: Bug Report
+description: Report a reproducible bug in verso
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Upload a PDF/image...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Native PDF Text Editing
+        - Scanned PDF / Image OCR Editing
+        - Government Stamp Studio
+        - Signatures / Overlays / Whiteout
+        - Dashboard & Folders
+        - Auth / Storage / Deployment
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: e.g. macOS / Chrome 134 / Docker or Local dev

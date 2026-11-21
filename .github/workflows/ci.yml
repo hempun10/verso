@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (Ruff, Pyright, Pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system libs for OpenCV & PDF fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 fonts-liberation fonts-dejavu-core
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+      - name: Sync dependencies
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+      - name: Typecheck (pyright)
+        run: uv run pyright
+      - name: Run tests (pytest)
+        run: uv run pytest -v
+
+  frontend:
+    name: Frontend (Typecheck, Build, Bundle Hygiene)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Production build
+        run: pnpm run build
+      - name: Verify production bundle excludes dev-only login strings
+        run: |
+          if grep -rqE "alice@local\.dev|Appwrite OAuth|Local Dev Mode" dist/assets; then
+            echo "Found dev-only auth strings in production bundle!"
+            exit 1
+          fi
