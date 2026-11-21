@@ -18,15 +18,16 @@ This file gives AI coding assistants the architecture map, commands, invariants,
   - `src/editpdf/config.py`: Env-driven `Settings` + production startup guards
   - `src/editpdf/models.py`: Pydantic v2 schemas (keep aligned with `frontend/src/types.ts`)
   - `tests/`: Pytest suite covering engines, overlays, folders, images, stamps, security, and production hardening
-- `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`) — every `.ts`/`.tsx` module is kept **strictly under 300 LOC** using a Bulletproof React feature-first architecture:
-  - `src/App.tsx`: Thin view router (`landing` / `dashboard` / `editor`) backed by `useAppController`
+- `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`) — every `.ts`/`.tsx` module is kept **strictly under 300 LOC** using a Bulletproof React feature-first architecture with colocated local state and domain Contexts (zero prop drilling):
+  - `src/App.tsx`: Thin view router (`AppProviders` → `EditorWorkspace` / `DashboardPage` / `LandingPage`)
+  - `src/app/AppProviders.tsx`: Composes `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, and global/editor `EditorModals`
   - `src/api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`, barrel `src/api.ts`): `apiFetch` wrapper (`credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, `VITE_API_BASE_URL`)
-  - `src/features/` — Domain-scoped hooks, sub-components, and selectors:
-    - `features/workspace/`: `useWorkspace`, `useAppController`
-    - `features/editor/`: `EditorWorkspace`, `EditorTopbar`, `EditorDocMenu`, `EditorToolGroup`, `EditorAccountMenu`, `EditorInspectors`, `EditorCanvas`, `InlineTextEditor`, `EditorBottomBar`, `EditorModals`, `TextStyleControls`, `ImageInspectorControls`, `useDocumentSession`, `usePageLoader`, `useUploadFlow`, `useEditorActions`, `useOverlayActions`, `useAssetPlacement`, `useEditorShortcuts`, plus `overlay-layer/` (`geometry.ts`, `useOverlayInteractions.ts`, `CropModeOverlay.tsx`, `OverlayItem.tsx`)
-    - `features/dashboard/`: `DashboardSidebar`, `SidebarFolderTree`, `DashboardHeader`, `DashboardCanvas`, `DashboardEmptyStates`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals`, `useDashboardState`, `selectors.ts`, `types.ts`
+  - `src/features/` — Domain-scoped Context providers, hooks, sub-components, and selectors:
+    - `features/workspace/`: `WorkspaceContext` (`WorkspaceProvider`, `useWorkspace`), `types.ts`
+    - `features/editor/`: `EditorContext` (`EditorProvider`, `useEditor`), `EditorWorkspace`, `EditorTopbar`, `EditorDocMenu`, `EditorToolGroup`, `EditorAccountMenu`, `EditorInspectors`, `EditorCanvas`, `InlineTextEditor`, `EditorBottomBar`, `EditorModals`, `TextStyleControls`, `ImageInspectorControls`, `useDocumentSession`, `usePageLoader`, `useUploadFlow`, `useEditorActions`, `useOverlayActions`, `useAssetPlacement`, `useEditorShortcuts`, plus `overlay-layer/` (`geometry.ts`, `useOverlayInteractions.ts`, `CropModeOverlay.tsx`, `OverlayItem.tsx`)
+    - `features/dashboard/`: Feature-scoped `DashboardContext` (`DashboardProvider`, `useDashboard`), `DashboardSidebar`, `SidebarFolderTree`, `DashboardHeader`, `DashboardCanvas`, `DashboardEmptyStates`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals`, `selectors.ts`, `types.ts`
     - `features/landing/`: `LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `FeatureVisuals`, `primitives.tsx`
-    - `features/stamp/`: `StampPreviewPane`, `StampControlsPane`, `StampExtractControls`, `useStampExtraction`
+    - `features/stamp/`: Feature-scoped `StampStudioContext` (`StampStudioProvider`, `useStampStudio`), `StampPreviewPane`, `StampControlsPane`, `StampExtractControls`, `useStampExtraction`
     - `features/signature/`: `SignatureTabs`, `renderSignature.ts`
   - `src/hooks/`: Reusable portable hooks — `useHistory`, `useWindowFileDrop`, `useWindowKeyDown`, `useDebouncedAutoSave`, `useScrolled`
   - `src/lib/`: `auth.ts`, `validation.ts`, `format.ts`, `canvas.ts`, `dom.ts`, `utils.ts`, modular `runs/` (`model.ts`, `dom.ts`) + barrel `runs.ts`, modular `stamp/` (`types.ts`, `primitives.ts`, `distress.ts`, `seals.ts`, `render.ts`) + barrel `stampRenderer.ts`

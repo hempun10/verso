@@ -1,6 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { StampExtractMode } from "@/lib/stampRenderer";
 import { cn } from "@/lib/utils";
+import { useStampStudio } from "./StampStudioContext";
 
 const EXTRACT_MODES: { id: StampExtractMode; label: string; hint: string }[] = [
   { id: "ink", label: "Logo / Scan", hint: "Clean logos & paper scans" },
@@ -8,23 +9,16 @@ const EXTRACT_MODES: { id: StampExtractMode; label: string; hint: string }[] = [
   { id: "cutout", label: "Photo Cutout", hint: "Isolate subject from photo" },
 ];
 
-interface StampExtractControlsProps {
-  extractMode: StampExtractMode;
-  sensitivity: number;
-  removeInnerWhite: boolean;
-  onExtractModeChange: (mode: StampExtractMode) => void;
-  onSensitivityChange: (val: number) => void;
-  onRemoveInnerWhiteChange: (val: boolean) => void;
-}
+export function StampExtractControls() {
+  const {
+    extractMode,
+    setExtractMode,
+    sensitivity,
+    setSensitivity,
+    removeInnerWhite,
+    setRemoveInnerWhite,
+  } = useStampStudio();
 
-export function StampExtractControls({
-  extractMode,
-  sensitivity,
-  removeInnerWhite,
-  onExtractModeChange,
-  onSensitivityChange,
-  onRemoveInnerWhiteChange,
-}: StampExtractControlsProps) {
   return (
     <div className="space-y-2.5 rounded-xl border border-border bg-secondary/45 p-3.5">
       <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
@@ -36,7 +30,7 @@ export function StampExtractControls({
             key={m.id}
             type="button"
             title={m.hint}
-            onClick={() => onExtractModeChange(m.id)}
+            onClick={() => setExtractMode(m.id)}
             className={cn(
               "cursor-pointer rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition-colors",
               extractMode === m.id
@@ -60,14 +54,14 @@ export function StampExtractControls({
           min={10}
           max={92}
           value={sensitivity}
-          onChange={(e) => onSensitivityChange(Number(e.target.value))}
+          onChange={(e) => setSensitivity(Number(e.target.value))}
           className="h-1.5 w-full cursor-pointer accent-[#7170ff]"
         />
       </div>
       <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground/90">
         <Checkbox
           checked={removeInnerWhite}
-          onCheckedChange={(v) => onRemoveInnerWhiteChange(Boolean(v))}
+          onCheckedChange={(v) => setRemoveInnerWhite(Boolean(v))}
         />
         <span>Make interior white areas transparent</span>
       </label>

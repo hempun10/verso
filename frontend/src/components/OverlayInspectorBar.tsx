@@ -13,8 +13,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useEditor } from "@/features/editor/EditorContext";
 import { ImageInspectorControls } from "@/features/editor/ImageInspectorControls";
-import type { ImageOverlay, PageOverlay, WhiteoutOverlay } from "@/types";
 
 const WHITEOUT_SWATCHES = [
   { hex: "#ffffff", label: "Pure White" },
@@ -25,29 +25,13 @@ const WHITEOUT_SWATCHES = [
   { hex: "#000000", label: "Blackout" },
 ] as const;
 
-interface OverlayInspectorBarProps {
-  overlay: PageOverlay;
-  isCropping: boolean;
-  onStartCrop: () => void;
-  onApplyCrop: () => void;
-  onResetCrop: () => void;
-  onCancelCrop: () => void;
-  onUpdate: (patch: Partial<WhiteoutOverlay> | Partial<ImageOverlay>) => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-}
+export function OverlayInspectorBar() {
+  const { actions } = useEditor();
+  const overlay = actions.selectedOverlay;
+  if (!overlay) return null;
 
-export function OverlayInspectorBar({
-  overlay,
-  isCropping,
-  onStartCrop,
-  onApplyCrop,
-  onResetCrop,
-  onCancelCrop,
-  onUpdate,
-  onDuplicate,
-  onDelete,
-}: OverlayInspectorBarProps) {
+  const isCropping = actions.croppingOverlayId === overlay.id;
+
   if (overlay.kind === "image" && isCropping) {
     return (
       <div
@@ -68,7 +52,7 @@ export function OverlayInspectorBar({
           size="sm"
           aria-label="Reset crop"
           className="h-7 px-2 text-xs"
-          onClick={onResetCrop}
+          onClick={actions.handleResetCrop}
         >
           Reset
         </Button>
@@ -78,7 +62,7 @@ export function OverlayInspectorBar({
           size="sm"
           aria-label="Cancel crop"
           className="h-7 gap-1 px-2 text-xs"
-          onClick={onCancelCrop}
+          onClick={actions.handleCancelCrop}
         >
           <X className="h-3.5 w-3.5" />
           Cancel
@@ -89,7 +73,7 @@ export function OverlayInspectorBar({
           size="sm"
           aria-label="Apply crop"
           className="h-7 gap-1 px-2.5 text-xs"
-          onClick={onApplyCrop}
+          onClick={actions.handleApplyCrop}
         >
           <Check className="h-3.5 w-3.5" />
           Done
@@ -124,7 +108,9 @@ export function OverlayInspectorBar({
                   aria-label="Rectangle shape"
                   aria-pressed={overlay.shape === "rect"}
                   className="h-6 w-6 rounded-md"
-                  onClick={() => onUpdate({ shape: "rect" })}
+                  onClick={() =>
+                    actions.handleUpdateOverlay(overlay.id, { shape: "rect" })
+                  }
                 >
                   <Square className="h-3.5 w-3.5" />
                 </Button>
@@ -140,7 +126,11 @@ export function OverlayInspectorBar({
                   aria-label="Ellipse shape"
                   aria-pressed={overlay.shape === "ellipse"}
                   className="h-6 w-6 rounded-md"
-                  onClick={() => onUpdate({ shape: "ellipse" })}
+                  onClick={() =>
+                    actions.handleUpdateOverlay(overlay.id, {
+                      shape: "ellipse",
+                    })
+                  }
                 >
                   <Circle className="h-3.5 w-3.5" />
                 </Button>
@@ -176,7 +166,9 @@ export function OverlayInspectorBar({
                 value={overlay.fill_hex}
                 fallbackPickerHex="#ffffff"
                 swatches={WHITEOUT_SWATCHES}
-                onChange={(hex) => onUpdate({ fill_hex: hex })}
+                onChange={(hex) =>
+                  actions.handleUpdateOverlay(overlay.id, { fill_hex: hex })
+                }
               />
             </PopoverContent>
           </Popover>
@@ -184,8 +176,8 @@ export function OverlayInspectorBar({
       ) : (
         <ImageInspectorControls
           overlay={overlay}
-          onStartCrop={onStartCrop}
-          onUpdate={onUpdate}
+          onStartCrop={() => actions.handleStartCrop(overlay)}
+          onUpdate={(patch) => actions.handleUpdateOverlay(overlay.id, patch)}
         />
       )}
 
@@ -199,7 +191,7 @@ export function OverlayInspectorBar({
             size="icon-sm"
             aria-label="Duplicate overlay"
             className="h-7 w-7 text-muted-foreground hover:text-foreground"
-            onClick={onDuplicate}
+            onClick={() => actions.handleDuplicateOverlay(overlay)}
           >
             <Copy className="h-3.5 w-3.5" />
           </Button>
@@ -215,7 +207,7 @@ export function OverlayInspectorBar({
             size="icon-sm"
             aria-label="Delete overlay"
             className="h-7 w-7 text-destructive hover:bg-destructive/15 hover:text-destructive"
-            onClick={onDelete}
+            onClick={() => actions.handleDeleteOverlay(overlay.id)}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

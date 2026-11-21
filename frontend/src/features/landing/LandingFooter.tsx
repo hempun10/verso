@@ -1,28 +1,12 @@
 import { BRAND_NAME, BrandLogo } from "@/components/BrandLogo";
-import type { LegalTab } from "@/components/LegalDialog";
-import type { UserInfo } from "@/types";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 
-interface LandingFooterProps {
-  isSignedIn: boolean;
-  user: UserInfo | null;
-  onOpenAuth: () => void;
-  onOpenDashboard: () => void;
-  onChooseFile: () => void;
-  onSignOut: () => void;
-  onOpenShortcuts: () => void;
-  onOpenLegal: (tab: LegalTab) => void;
-}
+export function LandingFooter() {
+  const { isSignedIn, user, setAuthOpen, setShortcutsOpen, setLegalTab } =
+    useWorkspace();
+  const { openDashboard, chooseFile, signOut } = useEditor();
 
-export function LandingFooter({
-  isSignedIn,
-  user,
-  onOpenAuth,
-  onOpenDashboard,
-  onChooseFile,
-  onSignOut,
-  onOpenShortcuts,
-  onOpenLegal,
-}: LandingFooterProps) {
   return (
     <footer id="footer" className="w-full pb-0">
       <div className="flex flex-col gap-10 p-6 md:flex-row md:items-start md:justify-between md:p-12">
@@ -77,7 +61,7 @@ export function LandingFooter({
             <li>
               <button
                 type="button"
-                onClick={onOpenDashboard}
+                onClick={openDashboard}
                 className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
               >
                 Open dashboard
@@ -86,7 +70,7 @@ export function LandingFooter({
             <li>
               <button
                 type="button"
-                onClick={onChooseFile}
+                onClick={() => chooseFile(null, true)}
                 className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
               >
                 Upload file
@@ -95,7 +79,7 @@ export function LandingFooter({
             <li>
               <button
                 type="button"
-                onClick={onOpenShortcuts}
+                onClick={() => setShortcutsOpen(true)}
                 className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
               >
                 Shortcuts
@@ -111,7 +95,7 @@ export function LandingFooter({
               ) : (
                 <button
                   type="button"
-                  onClick={onOpenAuth}
+                  onClick={() => setAuthOpen(true)}
                   className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
                 >
                   Sign up
@@ -122,7 +106,7 @@ export function LandingFooter({
               <li>
                 <button
                   type="button"
-                  onClick={onSignOut}
+                  onClick={() => void signOut()}
                   className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
                 >
                   Sign out
@@ -132,7 +116,7 @@ export function LandingFooter({
             <li>
               <button
                 type="button"
-                onClick={() => onOpenLegal("privacy")}
+                onClick={() => setLegalTab("privacy")}
                 className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
               >
                 Privacy Policy
@@ -141,7 +125,7 @@ export function LandingFooter({
             <li>
               <button
                 type="button"
-                onClick={() => onOpenLegal("terms")}
+                onClick={() => setLegalTab("terms")}
                 className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
               >
                 Terms of Service

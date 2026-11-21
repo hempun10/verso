@@ -1,50 +1,39 @@
+import { useState } from "react";
 import { Dices, Loader2, Stamp, Upload } from "lucide-react";
 import { AlertBanner } from "@/components/ui/alert-banner";
 import { Button } from "@/components/ui/button";
-import type { StampTemplate } from "@/lib/stampRenderer";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/validation";
+import { useStampStudio } from "./StampStudioContext";
 
-interface StampPreviewPaneProps {
-  previewPaper: "paper" | "transparent";
-  placementTilt: number;
-  template: StampTemplate;
-  hasSource: boolean;
-  sourceLabel: string;
-  maxImageBytes: number;
-  extracting: boolean;
-  extractError: string | null;
-  onCanvasMount: (el: HTMLCanvasElement | null) => void;
-  onPreviewPaperChange: (mode: "paper" | "transparent") => void;
-  onRerollGrain: () => void;
-  onDropFile: (file: File) => void;
-  onBrowseClick: () => void;
-  onClearSource: () => void;
-}
+export function StampPreviewPane() {
+  const {
+    limits,
+    hasSource,
+    sourceLabel,
+    extracting,
+    extractError,
+    config,
+    placementTilt,
+    onCanvasMount,
+    rerollGrain,
+    chooseFile,
+    openFilePicker,
+    clearSource,
+  } = useStampStudio();
 
-export function StampPreviewPane({
-  previewPaper,
-  placementTilt,
-  template,
-  hasSource,
-  sourceLabel,
-  maxImageBytes,
-  extracting,
-  extractError,
-  onCanvasMount,
-  onPreviewPaperChange,
-  onRerollGrain,
-  onDropFile,
-  onBrowseClick,
-  onClearSource,
-}: StampPreviewPaneProps) {
+  // Colocated preview backdrop state owned strictly by StampPreviewPane.
+  const [previewPaper, setPreviewPaper] = useState<"paper" | "transparent">(
+    "paper",
+  );
+
   return (
     <div className="flex flex-col gap-3.5 p-5">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary p-0.5 text-[11px]">
           <button
             type="button"
-            onClick={() => onPreviewPaperChange("paper")}
+            onClick={() => setPreviewPaper("paper")}
             className={cn(
               "cursor-pointer rounded-md px-2.5 py-1 font-medium transition-colors",
               previewPaper === "paper"
@@ -56,7 +45,7 @@ export function StampPreviewPane({
           </button>
           <button
             type="button"
-            onClick={() => onPreviewPaperChange("transparent")}
+            onClick={() => setPreviewPaper("transparent")}
             className={cn(
               "cursor-pointer rounded-md px-2.5 py-1 font-medium transition-colors",
               previewPaper === "transparent"
@@ -70,7 +59,7 @@ export function StampPreviewPane({
 
         <button
           type="button"
-          onClick={onRerollGrain}
+          onClick={rerollGrain}
           title="Re-roll rubber ink grain pattern"
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
@@ -79,7 +68,6 @@ export function StampPreviewPane({
         </button>
       </div>
 
-      {/* Live Canvas Surface */}
       <div
         className={cn(
           "relative flex aspect-square max-h-[370px] w-full items-center justify-center overflow-hidden rounded-xl border border-border p-4",
@@ -103,7 +91,7 @@ export function StampPreviewPane({
           </div>
         )}
 
-        {!hasSource && template === "raw" && !extracting && (
+        {!hasSource && config.template === "raw" && !extracting && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-6 text-center">
             <Stamp className="h-8 w-8 text-[#8a8f98]/60" />
             <p className="text-xs font-medium text-[#62666d]">
@@ -113,13 +101,12 @@ export function StampPreviewPane({
         )}
       </div>
 
-      {/* Upload / Replace Source Image Dropzone */}
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
           const dropped = e.dataTransfer.files?.[0];
-          if (dropped) onDropFile(dropped);
+          if (dropped) chooseFile(dropped);
         }}
         className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-input bg-secondary/70 px-3.5 py-2.5"
       >
@@ -128,7 +115,7 @@ export function StampPreviewPane({
             {sourceLabel || "No logo uploaded yet (optional for seals)"}
           </div>
           <div className="text-[11px] text-muted-foreground">
-            PNG, JPG, WebP up to {formatFileSize(maxImageBytes)}
+            PNG, JPG, WebP up to {formatFileSize(limits.max_image_bytes)}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -138,7 +125,7 @@ export function StampPreviewPane({
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs text-muted-foreground"
-              onClick={onClearSource}
+              onClick={clearSource}
             >
               Clear
             </Button>
@@ -148,7 +135,7 @@ export function StampPreviewPane({
             variant="outline"
             size="sm"
             className="h-7 gap-1.5 px-2.5 text-xs"
-            onClick={onBrowseClick}
+            onClick={openFilePicker}
           >
             <Upload className="h-3 w-3" />
             {hasSource ? "Replace" : "Upload logo"}

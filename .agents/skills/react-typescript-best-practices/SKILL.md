@@ -8,14 +8,15 @@ description: >-
 
 # React 19 + TypeScript Best Practices (verso Frontend)
 
-## 1. Modular Feature-First Architecture & `< 300 LOC` Rule
+## 1. State Colocation, Domain Contexts & `< 300 LOC` Rule
 
-- **Keep every `.ts` and `.tsx` file under 300 LOC**. When a module grows past ~250 LOC, decompose it along clear responsibilities rather than letting monoliths accumulate:
-  - Pure logic / geometry / selectors -> `src/lib/<domain>/` or `src/features/<feature>/selectors.ts`
-  - State & side-effect orchestration -> feature-scoped hooks (`useDashboardState`, `useDocumentSession`, `useEditorActions`, etc.)
-  - Presentational UI -> focused sub-components under `src/features/<feature>/`
-  - Shared design primitives -> `src/components/ui/` (e.g. `ColorSwatchPicker`, `AlertBanner`, `EmptyState`, `FileDropOverlay`)
-  - Keep thin barrel/shell entry points (`src/api.ts`, `src/lib/runs.ts`, `src/lib/stampRenderer.ts`, `src/components/<Name>.tsx`) so lazy imports and cross-feature imports stay stable.
+- **Colocate state first**: If a piece of UI state is only used by one component (e.g. `docMenuOpen` in `EditorDocMenu`, `newMenuOpen` in `DashboardSidebar`, `expanded` in `SidebarFolderTree`, `previewPaper` in `StampPreviewPane`, `openFaq` in `LandingSections`), keep `useState` inside that component — never lift it to `App.tsx` or a parent context.
+- **Avoid prop drilling with Domain Contexts (React 19 `<Context value={...}>`)**:
+  - `WorkspaceProvider` (`features/workspace/WorkspaceContext.tsx`): auth, user, saved docs/folders/assets/storage, navigation view, global error, global modals.
+  - `EditorProvider` (`features/editor/EditorContext.tsx`): active document session, undo/redo history, editor actions/selection, uploads + hidden file input, editor modals, shortcuts.
+  - Feature-local providers (`DashboardProvider`, `StampStudioProvider`): mounted ONLY at the feature boundary so state resets/unmounts cleanly when leaving the feature.
+  - Keep `App.tsx` ultra-thin (`AppProviders` → view router with 0 props passed to pages).
+- **Keep every `.ts` and `.tsx` file under 300 LOC** and avoid bloated prop lists (>8 props). Split pure logic/selectors, hooks, presentational sub-components, and shared UI primitives (`src/components/ui/`).
 
 ## 2. Strict TypeScript & Discriminated Unions
 

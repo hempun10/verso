@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type React from "react";
+import { useEditor } from "@/features/editor/EditorContext";
 import { CropModeOverlay } from "@/features/editor/overlay-layer/CropModeOverlay";
 import {
   type CropBox,
@@ -12,49 +13,30 @@ import {
   trackPointerDrag,
   useOverlayInteractions,
 } from "@/features/editor/overlay-layer/useOverlayInteractions";
-import type { ImageOverlay, PageOverlay, ToolMode } from "@/types";
 
 export { computeCroppedPatch, getFullImageGeometry, type CropBox };
 
-interface OverlayLayerProps {
-  overlays: PageOverlay[];
-  pageWidthPt: number;
-  pageHeightPt: number;
-  zoom: number;
-  toolMode: ToolMode;
-  showBoxes: boolean;
-  selectedOverlayId: string | null;
-  croppingOverlayId: string | null;
-  draftCrop: CropBox | null;
-  onSelectOverlay: (id: string) => void;
-  onStartCrop: (overlay: ImageOverlay) => void;
-  onChangeDraftCrop: (next: CropBox) => void;
-  onCreateWhiteout: (bbox: [number, number, number, number]) => void;
-  onCommitBbox: (id: string, bbox: [number, number, number, number]) => void;
-  onCommitAngle: (id: string, angleDeg: number) => void;
-}
-
-export function OverlayLayer({
-  overlays,
-  pageWidthPt,
-  pageHeightPt,
-  zoom,
-  toolMode,
-  showBoxes,
-  selectedOverlayId,
-  croppingOverlayId,
-  draftCrop,
-  onSelectOverlay,
-  onStartCrop,
-  onChangeDraftCrop,
-  onCreateWhiteout,
-  onCommitBbox,
-  onCommitAngle,
-}: OverlayLayerProps) {
+export function OverlayLayer() {
+  const { zoom, session, actions } = useEditor();
   const drawLayerRef = useRef<HTMLDivElement | null>(null);
   const [drawBox, setDrawBox] = useState<
     [number, number, number, number] | null
   >(null);
+
+  const pageWidthPt = session.currentPage?.width_pt ?? 612;
+  const pageHeightPt = session.currentPage?.height_pt ?? 792;
+
+  const handleSelectOverlay = (id: string) => {
+    if (actions.croppingOverlayId && actions.croppingOverlayId !== id) {
+      actions.handleApplyCrop();
+    }
+    if (actions.selectedBlock) {
+      actions.skippedBlurBlockIdRef.current = actions.selectedBlock.id;
+      actions.commitRuns(actions.selectedBlock, actions.draftRunsRef.current);
+      actions.setSelectedId(null);
+    }
+    actions.setSelectedOverlayId(id);
+  };
 
   const {
     dragState,
@@ -67,17 +49,18 @@ export function OverlayLayer({
     pageWidthPt,
     pageHeightPt,
     zoom,
-    toolMode,
-    croppingOverlayId,
-    draftCrop,
-    onSelectOverlay,
-    onChangeDraftCrop,
-    onCommitBbox,
-    onCommitAngle,
+    toolMode: actions.toolMode,
+    croppingOverlayId: actions.croppingOverlayId,
+    draftCrop: actions.draftCrop,
+    onSelectOverlay: handleSelectOverlay,
+    onChangeDraftCrop: actions.setDraftCrop,
+    onCommitBbox: (id, bbox) => actions.handleUpdateOverlay(id, { bbox }),
+    onCommitAngle: (id, angleDeg) =>
+      actions.handleUpdateOverlay(id, { angle_deg: angleDeg }),
   });
 
   const handleDrawStart = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0 || toolMode !== "whiteout") return;
+    if (e.button !== 0 || actions.toolMode !== "whiteout") return;
     e.stopPropagation();
     e.preventDefault();
     const rect = drawLayerRef.current?.getBoundingClientRect();
@@ -103,25 +86,31 @@ export function OverlayLayer({
       () => {
         setDrawBox(null);
         if (current[2] - current[0] >= 6 && current[3] - current[1] >= 6) {
-          onCreateWhiteout(current);
+          actions.handleCreateWhiteout(current);
         }
       },
     );
   };
 
+  const itemHandlers = {
+    onStartMove: startMove,
+    onStartResize: startResize,
+    onStartRotate: startRotate,
+  };
+
   return (
     <>
-      {overlays.map((overlay) => {
+      {session.pageOverlays.map((overlay) => {
         if (
           overlay.kind === "image" &&
-          croppingOverlayId === overlay.id &&
-          draftCrop !== null
+          actions.croppingOverlayId === overlay.id &&
+          actions.draftCrop !== null
         ) {
           return (
             <CropModeOverlay
               key={overlay.id}
               overlay={overlay}
-              draftCrop={draftCrop}
+              draftCrop={actions.draftCrop}
               zoom={zoom}
               onStartCropDrag={startCropDrag}
             />
@@ -149,20 +138,13 @@ export function OverlayLayer({
             overlay={overlay}
             bbox={bbox}
             activeAngle={activeAngle}
-            isSelected={overlay.id === selectedOverlayId}
             isRotating={isRotating}
-            zoom={zoom}
-            toolMode={toolMode}
-            showBoxes={showBoxes}
-            onStartMove={startMove}
-            onStartResize={startResize}
-            onStartRotate={startRotate}
-            onStartCrop={onStartCrop}
+            handlers={itemHandlers}
           />
         );
       })}
 
-      {toolMode === "whiteout" && (
+      {actions.toolMode === "whiteout" && (
         <div
           ref={drawLayerRef}
           data-whiteout-draw-layer="true"

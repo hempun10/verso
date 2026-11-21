@@ -1,27 +1,15 @@
 import { FolderPlus, Search, Share2, Upload } from "lucide-react";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { formatBytes } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/validation";
-import type { StorageUsage, UploadLimits } from "@/types";
-import type { DriveSection } from "./types";
+import { useDashboard } from "./DashboardContext";
 
-export function StorageSummaryCard({
-  usedBytes,
-  quotaBytes,
-  usedPct,
-  progressBarColor,
-  storageUsage,
-  totalDocsCount,
-  uploadLimits,
-}: {
-  usedBytes: number;
-  quotaBytes: number;
-  usedPct: number;
-  progressBarColor: string;
-  storageUsage: StorageUsage | null;
-  totalDocsCount: number;
-  uploadLimits: UploadLimits;
-}) {
+export function StorageSummaryCard() {
+  const { savedDocs, storageUsage, uploadLimits } = useWorkspace();
+  const { usedBytes, quotaBytes, usedPct, progressBarColor } = useDashboard();
+
   return (
     <div className="mb-6 rounded-xl border border-[#1f2023] bg-[#141516] p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -34,7 +22,7 @@ export function StorageSummaryCard({
           </span>
         </div>
         <div className="text-xs text-[#8a8f98] tabular-nums">
-          {storageUsage?.document_count ?? totalDocsCount} files ·{" "}
+          {storageUsage?.document_count ?? savedDocs.length} files ·{" "}
           {storageUsage?.asset_count ?? 0} saved images &amp; signatures
         </div>
       </div>
@@ -95,29 +83,18 @@ export function DashboardSkeleton() {
   );
 }
 
-interface DashboardEmptyStateProps {
-  mode: "home" | "section";
-  section: DriveSection;
-  search: string;
-  query: string;
-  activeFolderId: string | null;
-  activeFolderName: string;
-  uploadTargetFolderId: string | null;
-  onChooseFile: (folderId: string | null) => void;
-  onOpenNewFolder: (parentId: string | null) => void;
-}
+export function DashboardEmptyState({ mode }: { mode: "home" | "section" }) {
+  const { chooseFile } = useEditor();
+  const {
+    section,
+    search,
+    query,
+    activeFolderId,
+    activeFolderName,
+    uploadTargetFolderId,
+    openNewFolderDialog,
+  } = useDashboard();
 
-export function DashboardEmptyState({
-  mode,
-  section,
-  search,
-  query,
-  activeFolderId,
-  activeFolderName,
-  uploadTargetFolderId,
-  onChooseFile,
-  onOpenNewFolder,
-}: DashboardEmptyStateProps) {
   const showActions = mode === "home" || (!query && section !== "shared");
   const targetFolder = mode === "home" ? null : uploadTargetFolderId;
 
@@ -156,7 +133,7 @@ export function DashboardEmptyState({
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
           <button
             type="button"
-            onClick={() => onChooseFile(targetFolder)}
+            onClick={() => chooseFile(targetFolder)}
             className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-[#08090a] hover:bg-[#f4f4f6]"
           >
             <Upload className="h-3.5 w-3.5" />
@@ -164,7 +141,7 @@ export function DashboardEmptyState({
           </button>
           <button
             type="button"
-            onClick={() => onOpenNewFolder(targetFolder)}
+            onClick={() => openNewFolderDialog(targetFolder)}
             className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#2a2b2f] bg-[#141516] px-4 text-xs font-medium text-[#d4d4d8] hover:bg-[#1c1d1f]"
           >
             <FolderPlus className="h-3.5 w-3.5 text-[#7170ff]" />

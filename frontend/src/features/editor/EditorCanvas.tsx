@@ -1,103 +1,14 @@
-import type { MutableRefObject, RefObject } from "react";
 import { Loader2, Sparkles } from "lucide-react";
-import { OverlayLayer, type CropBox } from "@/components/OverlayLayer";
+import { OverlayLayer } from "@/components/OverlayLayer";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ActiveRangeStyle, SelectionRange } from "@/lib/runs";
 import { cn } from "@/lib/utils";
-import type {
-  ImageOverlay,
-  PageOverlay,
-  PageInfo,
-  TextBlock,
-  TextRun,
-  TextRunStyle,
-  ToolMode,
-} from "@/types";
+import { useEditor } from "./EditorContext";
 import { InlineTextEditor } from "./InlineTextEditor";
-import type { EditMap, PagePreview } from "./types";
 
-interface EditorCanvasProps {
-  docLoading: boolean;
-  currentPage: PageInfo | null;
-  pageIndex: number;
-  zoom: number;
-  busy: string | null;
-  activePreview: PagePreview | null;
-  isCanvasReady: boolean;
-  pageBlocks: TextBlock[];
-  pageOverlays: PageOverlay[];
-  editsMap: EditMap;
-  totalChanges: number;
-  selectedId: string | null;
-  selectedOverlayId: string | null;
-  croppingOverlayId: string | null;
-  draftCrop: CropBox | null;
-  toolMode: ToolMode;
-  showBoxes: boolean;
-  draftRuns: TextRun[];
-  activeRangeStyle: ActiveRangeStyle | null;
-  editorRef: RefObject<HTMLDivElement | null>;
-  inspectorRef: RefObject<HTMLDivElement | null>;
-  inspectorPointerDownRef: MutableRefObject<boolean>;
-  skippedBlurBlockIdRef: MutableRefObject<string | null>;
-  draftRunsRef: MutableRefObject<TextRun[]>;
-  selectionRangeRef: MutableRefObject<SelectionRange | null>;
-  onPreviewLoaded: (url: string) => void;
-  onSelectBlock: (block: TextBlock) => void;
-  onDraftRunsChange: (runs: TextRun[]) => void;
-  onSelectionRangeChange: (range: SelectionRange) => void;
-  onCommitRuns: (block: TextBlock, runs: TextRun[]) => void;
-  onUpdateStyle: (patch: Partial<TextRunStyle>) => void;
-  onCloseEditor: () => void;
-  onSelectOverlay: (id: string) => void;
-  onStartCrop: (overlay: ImageOverlay) => void;
-  onChangeDraftCrop: (next: CropBox) => void;
-  onCreateWhiteout: (bbox: [number, number, number, number]) => void;
-  onCommitOverlayBbox: (id: string, bbox: [number, number, number, number]) => void;
-  onCommitOverlayAngle: (id: string, angleDeg: number) => void;
-}
+export function EditorCanvas() {
+  const { editsMap, zoom, showBoxes, session, actions } = useEditor();
 
-export function EditorCanvas({
-  docLoading,
-  currentPage,
-  pageIndex,
-  zoom,
-  busy,
-  activePreview,
-  isCanvasReady,
-  pageBlocks,
-  pageOverlays,
-  editsMap,
-  totalChanges,
-  selectedId,
-  selectedOverlayId,
-  croppingOverlayId,
-  draftCrop,
-  toolMode,
-  showBoxes,
-  draftRuns,
-  activeRangeStyle,
-  editorRef,
-  inspectorRef,
-  inspectorPointerDownRef,
-  skippedBlurBlockIdRef,
-  draftRunsRef,
-  selectionRangeRef,
-  onPreviewLoaded,
-  onSelectBlock,
-  onDraftRunsChange,
-  onSelectionRangeChange,
-  onCommitRuns,
-  onUpdateStyle,
-  onCloseEditor,
-  onSelectOverlay,
-  onStartCrop,
-  onChangeDraftCrop,
-  onCreateWhiteout,
-  onCommitOverlayBbox,
-  onCommitOverlayAngle,
-}: EditorCanvasProps) {
-  if (docLoading) {
+  if (session.docLoading) {
     return (
       <div data-doc-skeleton="true" className="flex flex-col items-center gap-4">
         <div className="relative flex aspect-[612/792] w-[min(740px,92vw)] flex-col gap-5 rounded-md border border-border bg-card p-12 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.8)]">
@@ -126,13 +37,23 @@ export function EditorCanvas({
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="flex items-center gap-2 rounded-full border border-input bg-popover/95 px-4 py-2 text-xs font-medium text-foreground shadow-xl">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7170ff]" />
-              <span>{busy || "Loading document..."}</span>
+              <span>{session.busy || "Loading document..."}</span>
             </div>
           </div>
         </div>
       </div>
     );
   }
+
+  const {
+    currentPage,
+    pageIndex,
+    activePreview,
+    isCanvasReady,
+    pageBlocks,
+    totalChanges,
+    busy,
+  } = session;
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -153,7 +74,13 @@ export function EditorCanvas({
               src={activePreview.url}
               alt={`Page ${pageIndex + 1}`}
               draggable={false}
-              onLoad={() => onPreviewLoaded(activePreview.url)}
+              onLoad={() =>
+                session.setPreview((prev) =>
+                  prev && prev.url === activePreview.url
+                    ? { ...prev, loaded: true }
+                    : prev,
+                )
+              }
             />
           )}
 
@@ -184,31 +111,10 @@ export function EditorCanvas({
 
           {isCanvasReady &&
             pageBlocks.map((block) => {
-              const [x0, y0, x1, y1] = block.bbox;
-              if (block.id === selectedId) {
-                return (
-                  <InlineTextEditor
-                    key={block.id}
-                    block={block}
-                    existingEdit={editsMap[block.id] ?? null}
-                    zoom={zoom}
-                    draftRuns={draftRuns}
-                    activeRangeStyle={activeRangeStyle}
-                    editorRef={editorRef}
-                    inspectorRef={inspectorRef}
-                    inspectorPointerDownRef={inspectorPointerDownRef}
-                    skippedBlurBlockIdRef={skippedBlurBlockIdRef}
-                    draftRunsRef={draftRunsRef}
-                    selectionRangeRef={selectionRangeRef}
-                    onDraftRunsChange={onDraftRunsChange}
-                    onSelectionRangeChange={onSelectionRangeChange}
-                    onCommitRuns={onCommitRuns}
-                    onUpdateStyle={onUpdateStyle}
-                    onClose={onCloseEditor}
-                  />
-                );
+              if (block.id === actions.selectedId) {
+                return <InlineTextEditor key={block.id} block={block} />;
               }
-
+              const [x0, y0, x1, y1] = block.bbox;
               return (
                 <button
                   key={block.id}
@@ -226,41 +132,24 @@ export function EditorCanvas({
                     height: Math.max((y1 - y0) * zoom, 12),
                   }}
                   onMouseDown={(e) => {
-                    if (e.button !== 0 || toolMode === "whiteout") return;
+                    if (e.button !== 0 || actions.toolMode === "whiteout")
+                      return;
                     e.preventDefault();
-                    onSelectBlock(block);
+                    actions.selectBlock(block);
                   }}
                   onClick={() => {
-                    if (toolMode === "whiteout") return;
-                    onSelectBlock(block);
+                    if (actions.toolMode === "whiteout") return;
+                    actions.selectBlock(block);
                   }}
                 />
               );
             })}
 
-          {isCanvasReady && (
-            <OverlayLayer
-              overlays={pageOverlays}
-              pageWidthPt={currentPage.width_pt}
-              pageHeightPt={currentPage.height_pt}
-              zoom={zoom}
-              toolMode={toolMode}
-              showBoxes={showBoxes}
-              selectedOverlayId={selectedOverlayId}
-              croppingOverlayId={croppingOverlayId}
-              draftCrop={draftCrop}
-              onSelectOverlay={onSelectOverlay}
-              onStartCrop={onStartCrop}
-              onChangeDraftCrop={onChangeDraftCrop}
-              onCreateWhiteout={onCreateWhiteout}
-              onCommitBbox={onCommitOverlayBbox}
-              onCommitAngle={onCommitOverlayAngle}
-            />
-          )}
+          {isCanvasReady && <OverlayLayer />}
         </div>
       )}
 
-      {totalChanges === 0 && !selectedId && !busy && (
+      {totalChanges === 0 && !actions.selectedId && !busy && (
         <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1 text-[11px] text-muted-foreground shadow-sm">
           <Sparkles className="h-3 w-3 text-[#7170ff]" />
           <span>

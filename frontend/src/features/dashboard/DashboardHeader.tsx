@@ -1,4 +1,3 @@
-import type { RefObject } from "react";
 import {
   Keyboard,
   LayoutGrid,
@@ -15,46 +14,31 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cn } from "@/lib/utils";
-import type { UserInfo } from "@/types";
-import type { ViewMode } from "./types";
+import { useDashboard } from "./DashboardContext";
 
-interface DashboardHeaderProps {
-  search: string;
-  searchInputRef: RefObject<HTMLInputElement | null>;
-  viewMode: ViewMode;
-  authLoading: boolean;
-  isSignedIn: boolean;
-  user: UserInfo | null;
-  onSearchChange: (value: string) => void;
-  onViewModeChange: (mode: ViewMode) => void;
-  onOpenMobileNav: () => void;
-  onOpenShortcuts: () => void;
-  onOpenAuth: () => void;
-  onSignOut: () => void;
-}
+export function DashboardHeader() {
+  const { authLoading, isSignedIn, user, setAuthOpen, setShortcutsOpen } =
+    useWorkspace();
+  const { signOut } = useEditor();
+  const {
+    search,
+    setSearch,
+    searchInputRef,
+    viewMode,
+    setViewMode,
+    setMobileNavOpen,
+  } = useDashboard();
 
-export function DashboardHeader({
-  search,
-  searchInputRef,
-  viewMode,
-  authLoading,
-  isSignedIn,
-  user,
-  onSearchChange,
-  onViewModeChange,
-  onOpenMobileNav,
-  onOpenShortcuts,
-  onOpenAuth,
-  onSignOut,
-}: DashboardHeaderProps) {
   return (
     <header className="flex h-[56px] shrink-0 items-center justify-between gap-3 border-b border-[#1f2023] px-4 sm:px-5">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
           type="button"
           aria-label="Open menu"
-          onClick={onOpenMobileNav}
+          onClick={() => setMobileNavOpen(true)}
           className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#1f2023] text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8] md:hidden"
         >
           <Menu className="h-4 w-4" />
@@ -66,7 +50,7 @@ export function DashboardHeader({
             ref={searchInputRef}
             type="text"
             value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search in Drive"
             aria-label="Search in Drive"
             className="h-9 w-full rounded-full border border-[#1f2023] bg-[#141516] pr-14 pl-9 text-[13px] text-[#f7f8f8] placeholder:text-[#62666d] transition-colors focus:border-[#7170ff]/70 focus:bg-[#18191d] focus:outline-none"
@@ -74,7 +58,7 @@ export function DashboardHeader({
           {search ? (
             <button
               type="button"
-              onClick={() => onSearchChange("")}
+              onClick={() => setSearch("")}
               aria-label="Clear search"
               className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-[#62666d] hover:text-[#f7f8f8]"
             >
@@ -98,7 +82,7 @@ export function DashboardHeader({
             type="button"
             aria-label="Grid view"
             aria-pressed={viewMode === "grid"}
-            onClick={() => onViewModeChange("grid")}
+            onClick={() => setViewMode("grid")}
             className={cn(
               "cursor-pointer rounded-md p-1.5 transition-colors",
               viewMode === "grid"
@@ -112,7 +96,7 @@ export function DashboardHeader({
             type="button"
             aria-label="List view"
             aria-pressed={viewMode === "list"}
-            onClick={() => onViewModeChange("list")}
+            onClick={() => setViewMode("list")}
             className={cn(
               "cursor-pointer rounded-md p-1.5 transition-colors",
               viewMode === "list"
@@ -126,7 +110,7 @@ export function DashboardHeader({
 
         <button
           type="button"
-          onClick={onOpenShortcuts}
+          onClick={() => setShortcutsOpen(true)}
           aria-label="Keyboard shortcuts"
           title="Keyboard shortcuts"
           className="hidden h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#8a8f98] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8] sm:inline-flex"
@@ -171,7 +155,7 @@ export function DashboardHeader({
               <div className="flex flex-col gap-1">
                 <button
                   type="button"
-                  onClick={onOpenAuth}
+                  onClick={() => setAuthOpen(true)}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
                 >
                   <UserIcon className="h-3.5 w-3.5" />
@@ -179,7 +163,7 @@ export function DashboardHeader({
                 </button>
                 <button
                   type="button"
-                  onClick={onSignOut}
+                  onClick={() => void signOut()}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -191,7 +175,7 @@ export function DashboardHeader({
         ) : (
           <button
             type="button"
-            onClick={onOpenAuth}
+            onClick={() => setAuthOpen(true)}
             className="inline-flex h-8 cursor-pointer items-center rounded-full border border-[#2a2b2f] bg-[#1c1d1f] px-3.5 text-xs font-semibold text-[#f7f8f8] transition-colors hover:bg-[#25262b]"
           >
             Sign in

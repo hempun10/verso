@@ -1,18 +1,11 @@
 import type React from "react";
 import { RotateCw } from "lucide-react";
+import { useEditor } from "@/features/editor/EditorContext";
 import { cn } from "@/lib/utils";
-import type { ImageOverlay, PageOverlay, ToolMode } from "@/types";
+import type { ImageOverlay, PageOverlay } from "@/types";
 import { type HandleCorner, imageSrcFor } from "./geometry";
 
-interface OverlayItemProps {
-  overlay: PageOverlay;
-  bbox: [number, number, number, number];
-  activeAngle: number;
-  isSelected: boolean;
-  isRotating: boolean;
-  zoom: number;
-  toolMode: ToolMode;
-  showBoxes: boolean;
+export interface OverlayItemHandlers {
   onStartMove: (e: React.PointerEvent, overlay: PageOverlay) => void;
   onStartResize: (
     e: React.PointerEvent,
@@ -20,23 +13,27 @@ interface OverlayItemProps {
     corner: HandleCorner,
   ) => void;
   onStartRotate: (e: React.PointerEvent, overlay: ImageOverlay) => void;
-  onStartCrop: (overlay: ImageOverlay) => void;
+}
+
+interface OverlayItemProps {
+  overlay: PageOverlay;
+  bbox: [number, number, number, number];
+  activeAngle: number;
+  isRotating: boolean;
+  handlers: OverlayItemHandlers;
 }
 
 export function OverlayItem({
   overlay,
   bbox,
   activeAngle,
-  isSelected,
   isRotating,
-  zoom,
-  toolMode,
-  showBoxes,
-  onStartMove,
-  onStartResize,
-  onStartRotate,
-  onStartCrop,
+  handlers,
 }: OverlayItemProps) {
+  const { zoom, showBoxes, actions } = useEditor();
+  const isSelected = overlay.id === actions.selectedOverlayId;
+  const { toolMode, handleStartCrop } = actions;
+
   const [x0, y0, x1, y1] = bbox;
   const widthPx = Math.max(4, (x1 - x0) * zoom);
   const heightPx = Math.max(4, (y1 - y0) * zoom);
@@ -49,11 +46,11 @@ export function OverlayItem({
     <div
       data-overlay-id={overlay.id}
       data-overlay-kind={overlay.kind}
-      onPointerDown={(e) => onStartMove(e, overlay)}
+      onPointerDown={(e) => handlers.onStartMove(e, overlay)}
       onDoubleClick={(e) => {
         if (overlay.kind === "image" && toolMode === "select") {
           e.stopPropagation();
-          onStartCrop(overlay);
+          handleStartCrop(overlay);
         }
       }}
       className={cn(
@@ -110,7 +107,7 @@ export function OverlayItem({
                 type="button"
                 aria-label="Drag to rotate image"
                 data-rotate-handle="true"
-                onPointerDown={(e) => onStartRotate(e, overlay)}
+                onPointerDown={(e) => handlers.onStartRotate(e, overlay)}
                 className="flex h-5 w-5 cursor-grab items-center justify-center rounded-full border border-blue-600 bg-white text-blue-600 shadow-xs transition-colors hover:bg-blue-50 active:cursor-grabbing"
               >
                 <RotateCw className="h-3 w-3" />
@@ -128,7 +125,7 @@ export function OverlayItem({
             <div
               key={corner}
               data-resize-handle={corner}
-              onPointerDown={(e) => onStartResize(e, overlay, corner)}
+              onPointerDown={(e) => handlers.onStartResize(e, overlay, corner)}
               className={cn(
                 "absolute h-2.5 w-2.5 rounded-full border-2 border-blue-600 bg-white shadow-xs",
                 corner === "nw" && "-top-1.5 -left-1.5 cursor-nwse-resize",

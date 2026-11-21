@@ -1,4 +1,3 @@
-import type React from "react";
 import {
   FileText,
   Folder,
@@ -7,30 +6,19 @@ import {
   MoreVertical,
   Share2,
 } from "lucide-react";
+import { useEditor } from "@/features/editor/EditorContext";
 import { formatRelativeTime } from "@/lib/format";
 import { isImageFilename } from "@/lib/validation";
-import type { DocumentListItem, FolderItem } from "@/types";
-import type { ContextMenuTarget, DriveSection, ViewMode } from "./types";
+import type { DocumentListItem } from "@/types";
+import { useDashboard } from "./DashboardContext";
 
-interface FileViewsProps {
-  documents: DocumentListItem[];
-  folderMap: Map<string, FolderItem>;
-  section: DriveSection;
-  viewMode: ViewMode;
-  busyItemId: string | null;
-  onOpenDocument: (docId: string) => void;
-  onOpenContextMenu: (e: React.MouseEvent, target: ContextMenuTarget) => void;
-}
+export function FileViews({ documents }: { documents: DocumentListItem[] }) {
+  const { session } = useEditor();
+  const { folderMap, section, viewMode, busyItemId, openContextMenu } =
+    useDashboard();
 
-export function FileViews({
-  documents,
-  folderMap,
-  section,
-  viewMode,
-  busyItemId,
-  onOpenDocument,
-  onOpenContextMenu,
-}: FileViewsProps) {
+  const onOpenDocument = (id: string) => void session.loadSavedDocument(id);
+
   if (viewMode === "list") {
     return (
       <div className="divide-y divide-[#1f2023] overflow-hidden rounded-xl border border-[#1f2023] bg-[#141516]/60">
@@ -46,7 +34,7 @@ export function FileViews({
             <div
               key={item.doc_id}
               onContextMenu={(e) =>
-                onOpenContextMenu(e, { kind: "file", doc: item })
+                openContextMenu(e, { kind: "file", doc: item })
               }
               className="flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-[#1a1b1f]"
             >
@@ -94,9 +82,7 @@ export function FileViews({
                 type="button"
                 aria-label={`File options for ${item.filename}`}
                 disabled={isBusy}
-                onClick={(e) =>
-                  onOpenContextMenu(e, { kind: "file", doc: item })
-                }
+                onClick={(e) => openContextMenu(e, { kind: "file", doc: item })}
                 className="cursor-pointer rounded-full p-1.5 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
               >
                 {isBusy ? (
@@ -126,7 +112,7 @@ export function FileViews({
           <div
             key={item.doc_id}
             onContextMenu={(e) =>
-              onOpenContextMenu(e, { kind: "file", doc: item })
+              openContextMenu(e, { kind: "file", doc: item })
             }
             className="group flex flex-col overflow-hidden rounded-xl border border-[#1f2023] bg-[#141516] transition-colors hover:border-[#2a2b2f] hover:bg-[#191a1e]"
           >
@@ -194,9 +180,7 @@ export function FileViews({
                 type="button"
                 aria-label={`File options for ${item.filename}`}
                 disabled={isBusy}
-                onClick={(e) =>
-                  onOpenContextMenu(e, { kind: "file", doc: item })
-                }
+                onClick={(e) => openContextMenu(e, { kind: "file", doc: item })}
                 className="cursor-pointer rounded-full p-1 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
               >
                 {isBusy ? (

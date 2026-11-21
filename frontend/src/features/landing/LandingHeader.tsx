@@ -7,9 +7,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/utils";
-import type { UserInfo } from "@/types";
 import { PrimaryCtaButton, SecondaryButton } from "./primitives";
 
 const NAV_LINKS = [
@@ -18,23 +19,9 @@ const NAV_LINKS = [
   { href: "#faq", label: "FAQ" },
 ];
 
-interface LandingHeaderProps {
-  authLoading: boolean;
-  isSignedIn: boolean;
-  user: UserInfo | null;
-  onOpenAuth: () => void;
-  onOpenDashboard: () => void;
-  onSignOut: () => void;
-}
-
-export function LandingHeader({
-  authLoading,
-  isSignedIn,
-  user,
-  onOpenAuth,
-  onOpenDashboard,
-  onSignOut,
-}: LandingHeaderProps) {
+export function LandingHeader() {
+  const { authLoading, isSignedIn, user, setAuthOpen } = useWorkspace();
+  const { openDashboard, signOut } = useEditor();
   const scrolled = useScrolled(12);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -90,7 +77,7 @@ export function LandingHeader({
                 <>
                   <SecondaryButton
                     size="sm"
-                    onClick={onOpenDashboard}
+                    onClick={openDashboard}
                     className="hidden sm:inline-flex"
                   >
                     Open dashboard
@@ -121,7 +108,7 @@ export function LandingHeader({
                       <div className="flex flex-col gap-1">
                         <button
                           type="button"
-                          onClick={onOpenDashboard}
+                          onClick={openDashboard}
                           className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#a1a1aa] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
                         >
                           <FileText className="h-3.5 w-3.5" />
@@ -129,7 +116,7 @@ export function LandingHeader({
                         </button>
                         <button
                           type="button"
-                          onClick={onOpenAuth}
+                          onClick={() => setAuthOpen(true)}
                           className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#a1a1aa] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
                         >
                           <UserIcon className="h-3.5 w-3.5" />
@@ -137,7 +124,7 @@ export function LandingHeader({
                         </button>
                         <button
                           type="button"
-                          onClick={onSignOut}
+                          onClick={() => void signOut()}
                           className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#e0705f] transition-colors hover:bg-[#e0705f]/10"
                         >
                           <LogOut className="h-3.5 w-3.5" />
@@ -150,7 +137,7 @@ export function LandingHeader({
               ) : (
                 <SecondaryButton
                   size="sm"
-                  onClick={onOpenAuth}
+                  onClick={() => setAuthOpen(true)}
                   className="hidden sm:inline-flex"
                 >
                   Sign up
@@ -213,7 +200,7 @@ export function LandingHeader({
                 full
                 onClick={() => {
                   setDrawerOpen(false);
-                  onOpenDashboard();
+                  openDashboard();
                 }}
               >
                 Open dashboard
@@ -223,7 +210,7 @@ export function LandingHeader({
                 full
                 onClick={() => {
                   setDrawerOpen(false);
-                  onOpenAuth();
+                  setAuthOpen(true);
                 }}
               >
                 Sign up

@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import { AuthDialog } from "@/components/AuthDialog";
-import type { LegalTab } from "@/components/LegalDialog";
 import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { UploadQueueToast } from "@/components/UploadQueueToast";
 import { DocumentsDialog, ShareDialog } from "@/components/WorkspaceDialogs";
@@ -11,12 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { useWorkspace } from "@/features/workspace/useWorkspace";
-import { startAppwriteOAuth } from "@/lib/auth";
-import type { StampSeed } from "./types";
-import type { useAssetPlacement } from "./useAssetPlacement";
-import type { useDocumentSession } from "./useDocumentSession";
-import type { useUploadFlow } from "./useUploadFlow";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { useEditor } from "./EditorContext";
 
 const ImageLibraryDialog = lazy(() =>
   import("@/components/ImageLibraryDialog").then((m) => ({
@@ -44,70 +39,46 @@ const StampStudioDialog = lazy(() =>
   })),
 );
 
-export interface AppDialogState {
-  authOpen: boolean;
-  setAuthOpen: (open: boolean) => void;
-  docsOpen: boolean;
-  setDocsOpen: (open: boolean) => void;
-  shareOpen: boolean;
-  setShareOpen: (open: boolean) => void;
-  signOpen: boolean;
-  setSignOpen: (open: boolean) => void;
-  imageOpen: boolean;
-  setImageOpen: (open: boolean) => void;
-  stampOpen: boolean;
-  setStampOpen: (open: boolean) => void;
-  stampSeed: StampSeed;
-  setStampSeed: (seed: StampSeed) => void;
-  shortcutsOpen: boolean;
-  setShortcutsOpen: (open: boolean) => void;
-  legalTab: LegalTab | null;
-  setLegalTab: (tab: LegalTab | null) => void;
-}
+export function EditorModals() {
+  const workspace = useWorkspace();
+  const {
+    docsOpen,
+    setDocsOpen,
+    shareOpen,
+    setShareOpen,
+    signOpen,
+    setSignOpen,
+    imageOpen,
+    setImageOpen,
+    stampOpen,
+    setStampOpen,
+    stampSeed,
+    openStampStudio,
+    session,
+    upload,
+    assetsPlacement,
+    deleteDocument,
+  } = useEditor();
 
-interface EditorModalsProps {
-  workspace: ReturnType<typeof useWorkspace>;
-  session: ReturnType<typeof useDocumentSession>;
-  upload: ReturnType<typeof useUploadFlow>;
-  assetsPlacement: ReturnType<typeof useAssetPlacement>;
-  dialogs: AppDialogState;
-  onError: (msg: string | null) => void;
-}
-
-export function EditorModals({
-  workspace,
-  session,
-  upload,
-  assetsPlacement,
-  dialogs,
-  onError,
-}: EditorModalsProps) {
   return (
     <>
       <AuthDialog
-        open={dialogs.authOpen}
-        onOpenChange={dialogs.setAuthOpen}
+        open={workspace.authOpen}
+        onOpenChange={workspace.setAuthOpen}
         authConfig={workspace.authConfig}
-        onOAuthLogin={(provider) => {
-          if (!workspace.authConfig) return;
-          if (!startAppwriteOAuth(provider, workspace.authConfig)) {
-            onError(
-              "Social sign-in is currently unavailable. Please try again later.",
-            );
-          }
-        }}
+        onOAuthLogin={workspace.handleOAuthLogin}
         onDevLogin={workspace.handleDevLogin}
         onOpenLegal={(tab) => {
-          dialogs.setAuthOpen(false);
-          dialogs.setLegalTab(tab);
+          workspace.setAuthOpen(false);
+          workspace.setLegalTab(tab);
         }}
       />
 
       <Suspense fallback={null}>
-        {dialogs.signOpen && (
+        {signOpen && (
           <SignaturePadDialog
-            open={dialogs.signOpen}
-            onOpenChange={dialogs.setSignOpen}
+            open={signOpen}
+            onOpenChange={setSignOpen}
             savedSignatures={workspace.savedSignatures}
             loading={workspace.workspaceLoading}
             onPlaceNewSignature={assetsPlacement.handlePlaceNewSignature}
@@ -116,72 +87,65 @@ export function EditorModals({
           />
         )}
 
-        {dialogs.imageOpen && (
+        {imageOpen && (
           <ImageLibraryDialog
-            open={dialogs.imageOpen}
-            onOpenChange={dialogs.setImageOpen}
+            open={imageOpen}
+            onOpenChange={setImageOpen}
             savedImages={workspace.savedImages}
             loading={workspace.workspaceLoading}
             limits={workspace.uploadLimits}
             onUploadAndPlace={assetsPlacement.handleUploadImageAssetAndPlace}
             onPlaceSavedImage={assetsPlacement.handlePlaceSavedAsset}
             onDeleteSavedImage={workspace.handleDeleteAsset}
-            onOpenStampStudio={(opts) => {
-              dialogs.setStampSeed({
-                file: opts?.file ?? null,
-                imageUrl: opts?.asset?.url ?? null,
-                name: opts?.asset?.name ?? "",
-              });
-              dialogs.setStampOpen(true);
-            }}
+            onOpenStampStudio={openStampStudio}
           />
         )}
 
-        {dialogs.stampOpen && (
+        {stampOpen && (
           <StampStudioDialog
-            open={dialogs.stampOpen}
-            onOpenChange={dialogs.setStampOpen}
+            open={stampOpen}
+            onOpenChange={setStampOpen}
             limits={workspace.uploadLimits}
-            initialFile={dialogs.stampSeed.file ?? null}
-            initialImageUrl={dialogs.stampSeed.imageUrl ?? null}
-            initialName={dialogs.stampSeed.name ?? ""}
+            initialFile={stampSeed.file ?? null}
+            initialImageUrl={stampSeed.imageUrl ?? null}
+            initialName={stampSeed.name ?? ""}
             onSaveAndPlaceStamp={assetsPlacement.handlePlaceNewStamp}
           />
         )}
 
-        {dialogs.shortcutsOpen && (
+        {workspace.shortcutsOpen && (
           <ShortcutsDialog
-            open={dialogs.shortcutsOpen}
-            onOpenChange={dialogs.setShortcutsOpen}
+            open={workspace.shortcutsOpen}
+            onOpenChange={workspace.setShortcutsOpen}
           />
         )}
 
-        {dialogs.legalTab !== null && (
+        {workspace.legalTab !== null && (
           <LegalDialog
             open={true}
-            tab={dialogs.legalTab}
-            onTabChange={dialogs.setLegalTab}
+            tab={workspace.legalTab}
+            onTabChange={workspace.setLegalTab}
             onOpenChange={(open) => {
-              if (!open) dialogs.setLegalTab(null);
+              if (!open) workspace.setLegalTab(null);
             }}
           />
         )}
       </Suspense>
 
       <DocumentsDialog
-        open={dialogs.docsOpen}
-        onOpenChange={dialogs.setDocsOpen}
+        open={docsOpen}
+        onOpenChange={setDocsOpen}
         documents={workspace.savedDocs}
         loading={workspace.workspaceLoading}
         activeDocId={session.doc?.doc_id ?? null}
         onOpenDocument={(id) => session.loadSavedDocument(id, null)}
-        onDeleteDocument={workspace.handleDeleteSavedDoc}
+        onDeleteDocument={deleteDocument}
       />
 
       {session.doc && (
         <ShareDialog
-          open={dialogs.shareOpen}
-          onOpenChange={dialogs.setShareOpen}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
           docId={session.doc.doc_id}
           filename={session.doc.filename}
           isShared={session.docMeta.isShared}

@@ -12,31 +12,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ToolMode } from "@/types";
+import { useEditor } from "./EditorContext";
 
-interface EditorToolGroupProps {
-  toolMode: ToolMode;
-  canUndo: boolean;
-  canRedo: boolean;
-  onSelectTool: () => void;
-  onToggleWhiteout: () => void;
-  onOpenSign: () => void;
-  onOpenImage: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
-}
+export function EditorToolGroup() {
+  const { actions, canUndo, canRedo, undo, redo, setSignOpen, setImageOpen } =
+    useEditor();
 
-export function EditorToolGroup({
-  toolMode,
-  canUndo,
-  canRedo,
-  onSelectTool,
-  onToggleWhiteout,
-  onOpenSign,
-  onOpenImage,
-  onUndo,
-  onRedo,
-}: EditorToolGroupProps) {
+  const toggleWhiteout = () => {
+    if (actions.selectedBlock) {
+      actions.skippedBlurBlockIdRef.current = actions.selectedBlock.id;
+      actions.commitRuns(actions.selectedBlock, actions.draftRunsRef.current);
+      actions.setSelectedId(null);
+    }
+    actions.setSelectedOverlayId(null);
+    actions.setToolMode((m) => (m === "whiteout" ? "select" : "whiteout"));
+  };
+
   return (
     <>
       <div
@@ -47,12 +38,12 @@ export function EditorToolGroup({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={toolMode === "select" ? "default" : "ghost"}
+              variant={actions.toolMode === "select" ? "default" : "ghost"}
               size="sm"
               aria-label="Select and edit text"
-              aria-pressed={toolMode === "select"}
+              aria-pressed={actions.toolMode === "select"}
               className="h-7 gap-1.5 rounded-md px-2.5 text-xs"
-              onClick={onSelectTool}
+              onClick={() => actions.setToolMode("select")}
             >
               <MousePointer2 className="h-3.5 w-3.5" />
               <span>Select</span>
@@ -64,12 +55,12 @@ export function EditorToolGroup({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={toolMode === "whiteout" ? "default" : "ghost"}
+              variant={actions.toolMode === "whiteout" ? "default" : "ghost"}
               size="sm"
               aria-label="Whiteout tool"
-              aria-pressed={toolMode === "whiteout"}
+              aria-pressed={actions.toolMode === "whiteout"}
               className="h-7 gap-1.5 rounded-md px-2.5 text-xs"
-              onClick={onToggleWhiteout}
+              onClick={toggleWhiteout}
             >
               <Eraser className="h-3.5 w-3.5" />
               <span>Whiteout</span>
@@ -85,7 +76,7 @@ export function EditorToolGroup({
               size="sm"
               aria-label="Signature pad"
               className="h-7 gap-1.5 rounded-md px-2.5 text-xs"
-              onClick={onOpenSign}
+              onClick={() => setSignOpen(true)}
             >
               <PenTool className="h-3.5 w-3.5" />
               <span>Sign</span>
@@ -101,7 +92,7 @@ export function EditorToolGroup({
               size="sm"
               aria-label="Add image"
               className="h-7 gap-1.5 rounded-md px-2.5 text-xs"
-              onClick={onOpenImage}
+              onClick={() => setImageOpen(true)}
             >
               <ImagePlus className="h-3.5 w-3.5" />
               <span>Image</span>
@@ -119,7 +110,7 @@ export function EditorToolGroup({
               size="icon-sm"
               aria-label="Undo"
               disabled={!canUndo}
-              onClick={onUndo}
+              onClick={undo}
             >
               <Undo2 className="h-3.5 w-3.5" />
             </Button>
@@ -133,7 +124,7 @@ export function EditorToolGroup({
               size="icon-sm"
               aria-label="Redo"
               disabled={!canRedo}
-              onClick={onRedo}
+              onClick={redo}
             >
               <Redo2 className="h-3.5 w-3.5" />
             </Button>

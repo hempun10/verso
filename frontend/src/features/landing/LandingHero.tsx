@@ -1,36 +1,21 @@
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { TurnstileWidget } from "@/components/TurnstileWidget";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/validation";
-import type { UploadLimits } from "@/types";
 import { WORKS_ON } from "./FeatureVisuals";
 import { PrimaryCtaButton, SecondaryButton } from "./primitives";
 
-interface LandingHeroProps {
-  uploadLimits: UploadLimits;
-  captchaRequired: boolean;
-  turnstileSiteKey: string;
-  uploadCaptchaToken: string | null;
-  uploadCaptchaResetKey: number;
-  onCaptchaToken: (token: string | null) => void;
-  onChooseFile: () => void;
-  onUploadFiles: (files: File[]) => void;
-  onOpenDashboard: () => void;
-}
-
-export function LandingHero({
-  uploadLimits,
-  captchaRequired,
-  turnstileSiteKey,
-  uploadCaptchaToken,
-  uploadCaptchaResetKey,
-  onCaptchaToken,
-  onChooseFile,
-  onUploadFiles,
-  onOpenDashboard,
-}: LandingHeroProps) {
+export function LandingHero() {
+  const { authConfig, uploadLimits, captchaRequired } = useWorkspace();
+  const { upload, chooseFile, openDashboard } = useEditor();
   const [isDragging, setIsDragging] = useState(false);
+
+  const turnstileSiteKey = authConfig?.turnstile_site_key ?? "";
+  const uploadDisabled = captchaRequired && !upload.uploadCaptchaToken;
+  const handleChoose = () => chooseFile(null, true);
 
   return (
     <section id="hero" className="relative w-full">
@@ -55,13 +40,10 @@ export function LandingHero({
 
           <div className="flex flex-col items-center gap-5">
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <PrimaryCtaButton
-                onClick={onChooseFile}
-                disabled={captchaRequired && !uploadCaptchaToken}
-              >
+              <PrimaryCtaButton onClick={handleChoose} disabled={uploadDisabled}>
                 Choose a file
               </PrimaryCtaButton>
-              <SecondaryButton onClick={onOpenDashboard}>
+              <SecondaryButton onClick={openDashboard}>
                 Open dashboard
               </SecondaryButton>
             </div>
@@ -89,7 +71,7 @@ export function LandingHero({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              onChooseFile();
+              handleChoose();
             }
           }}
           onDragOver={(e) => {
@@ -101,9 +83,9 @@ export function LandingHero({
             e.preventDefault();
             setIsDragging(false);
             const dropped = Array.from(e.dataTransfer.files ?? []);
-            if (dropped.length > 0) onUploadFiles(dropped);
+            if (dropped.length > 0) void upload.handleUploadFiles(dropped, null);
           }}
-          onClick={onChooseFile}
+          onClick={handleChoose}
           className={cn(
             "group relative mx-auto flex w-full max-w-2xl cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-6 py-12 text-center transition-colors duration-200 sm:py-14",
             isDragging
@@ -139,10 +121,10 @@ export function LandingHero({
             >
               <TurnstileWidget
                 siteKey={turnstileSiteKey}
-                resetKey={uploadCaptchaResetKey}
-                onToken={onCaptchaToken}
+                resetKey={upload.uploadCaptchaResetKey}
+                onToken={upload.setUploadCaptchaToken}
               />
-              {!uploadCaptchaToken && (
+              {!upload.uploadCaptchaToken && (
                 <p className="text-[11px] text-[#8a8f98]">
                   Complete human verification before uploading
                 </p>
@@ -151,7 +133,7 @@ export function LandingHero({
           )}
 
           <div className="mt-6">
-            <PrimaryCtaButton disabled={captchaRequired && !uploadCaptchaToken}>
+            <PrimaryCtaButton disabled={uploadDisabled}>
               Choose PDF or image
             </PrimaryCtaButton>
           </div>

@@ -1,4 +1,3 @@
-import type { RefObject } from "react";
 import { Highlighter, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,8 +13,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useEditor } from "@/features/editor/EditorContext";
 import { TextStyleControls } from "@/features/editor/TextStyleControls";
-import type { TextBlock, TextEdit, TextRunStyle } from "@/types";
 
 const TEXT_SWATCHES = [
   { hex: "#000000" },
@@ -54,60 +53,32 @@ function formatFontSourceLabel(source: string): string {
   }
 }
 
-interface InspectorBarProps {
-  inspectorRef: RefObject<HTMLDivElement | null>;
-  selectedBlock: TextBlock;
-  selectedEdit: TextEdit | null;
-  overrideFonts: string[];
-  activeBold: boolean;
-  activeItalic: boolean;
-  activeUnderline: boolean;
-  activeStrike: boolean;
-  activeColor: string;
-  activeHighlight: string | null;
-  activeFamilyOverride: string | null;
-  activeSizePt: number;
-  selectedCharCount: number;
-  onPointerDownInside: () => void;
-  onUpdateStyle: (patch: Partial<TextRunStyle>) => void;
-  onTransformCase: (mode: "upper" | "lower" | "title") => void;
-  onRevert: () => void;
-  onDismiss: () => void;
-}
+export function InspectorBar() {
+  const { actions } = useEditor();
+  const { selectedBlock, selectedEdit, activeRangeStyle, selectedCharCount } =
+    actions;
 
-export function InspectorBar({
-  inspectorRef,
-  selectedBlock,
-  selectedEdit,
-  overrideFonts,
-  activeBold,
-  activeItalic,
-  activeUnderline,
-  activeStrike,
-  activeColor,
-  activeHighlight,
-  activeFamilyOverride,
-  activeSizePt,
-  selectedCharCount,
-  onPointerDownInside,
-  onUpdateStyle,
-  onTransformCase,
-  onRevert,
-  onDismiss,
-}: InspectorBarProps) {
+  if (!selectedBlock || !activeRangeStyle) return null;
+
+  const { colorHex: activeColor, highlightHex: activeHighlight } =
+    activeRangeStyle;
+
   return (
     <div
-      ref={inspectorRef}
+      ref={actions.inspectorRef}
       className="inspector-bar fixed top-[66px] left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-[0_14px_40px_-10px_rgba(0,0,0,0.75)]"
       onMouseDownCapture={(e) => {
-        onPointerDownInside();
+        actions.markInspectorPointerDown();
         const target = e.target as HTMLElement;
         if (target.closest("button") && !target.closest("[data-allow-focus]")) {
           e.preventDefault();
         }
       }}
       onKeyDown={(e) => {
-        if (e.key === "Escape") onDismiss();
+        if (e.key === "Escape") {
+          actions.skippedBlurBlockIdRef.current = selectedBlock.id;
+          actions.setSelectedId(null);
+        }
       }}
     >
       <div className="flex items-center gap-1.5 pr-0.5">
@@ -140,23 +111,10 @@ export function InspectorBar({
 
       <Separator orientation="vertical" className="mx-0.5 h-5" />
 
-      <TextStyleControls
-        selectedBlock={selectedBlock}
-        overrideFonts={overrideFonts}
-        activeBold={activeBold}
-        activeItalic={activeItalic}
-        activeUnderline={activeUnderline}
-        activeStrike={activeStrike}
-        activeFamilyOverride={activeFamilyOverride}
-        activeSizePt={activeSizePt}
-        onPointerDownInside={onPointerDownInside}
-        onUpdateStyle={onUpdateStyle}
-        onTransformCase={onTransformCase}
-      />
+      <TextStyleControls />
 
       <Separator orientation="vertical" className="mx-0.5 h-5" />
 
-      {/* Text color popover */}
       <Popover>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -182,7 +140,7 @@ export function InspectorBar({
         </Tooltip>
         <PopoverContent
           className="w-56 p-3"
-          onMouseDownCapture={() => onPointerDownInside()}
+          onMouseDownCapture={() => actions.markInspectorPointerDown()}
         >
           <ColorSwatchPicker
             title="Text color"
@@ -191,12 +149,13 @@ export function InspectorBar({
             swatches={TEXT_SWATCHES}
             columns={5}
             preventFocusSteal
-            onChange={(hex) => onUpdateStyle({ color_hex_override: hex })}
+            onChange={(hex) =>
+              actions.updateSelectedStyle({ color_hex_override: hex })
+            }
           />
         </PopoverContent>
       </Popover>
 
-      {/* Highlight popover */}
       <Popover>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -220,7 +179,7 @@ export function InspectorBar({
         </Tooltip>
         <PopoverContent
           className="w-56 p-3"
-          onMouseDownCapture={() => onPointerDownInside()}
+          onMouseDownCapture={() => actions.markInspectorPointerDown()}
         >
           <ColorSwatchPicker
             title="Highlight"
@@ -229,8 +188,10 @@ export function InspectorBar({
             swatches={HIGHLIGHT_SWATCHES}
             allowClear
             preventFocusSteal
-            onChange={(hex) => onUpdateStyle({ highlight_hex: hex })}
-            onClear={() => onUpdateStyle({ highlight_hex: null })}
+            onChange={(hex) =>
+              actions.updateSelectedStyle({ highlight_hex: hex })
+            }
+            onClear={() => actions.updateSelectedStyle({ highlight_hex: null })}
           />
         </PopoverContent>
       </Popover>
@@ -245,7 +206,7 @@ export function InspectorBar({
                 variant="ghost"
                 size="sm"
                 className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={onRevert}
+                onClick={actions.revertSelected}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Revert

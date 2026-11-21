@@ -7,23 +7,13 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { UserInfo } from "@/types";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { useEditor } from "./EditorContext";
 
-interface EditorAccountMenuProps {
-  authLoading: boolean;
-  isSignedIn: boolean;
-  user: UserInfo | null;
-  onOpenAuth: () => void;
-  onSignOut: () => void;
-}
+export function EditorAccountMenu() {
+  const { authLoading, isSignedIn, user, setAuthOpen } = useWorkspace();
+  const { signOut } = useEditor();
 
-export function EditorAccountMenu({
-  authLoading,
-  isSignedIn,
-  user,
-  onOpenAuth,
-  onSignOut,
-}: EditorAccountMenuProps) {
   if (authLoading) {
     return (
       <Skeleton data-auth-skeleton="true" className="h-8 w-20 rounded-full" />
@@ -63,7 +53,7 @@ export function EditorAccountMenu({
               variant="ghost"
               size="sm"
               className="justify-start"
-              onClick={onOpenAuth}
+              onClick={() => setAuthOpen(true)}
             >
               <UserIcon className="h-3.5 w-3.5" />
               Switch account
@@ -72,7 +62,7 @@ export function EditorAccountMenu({
               variant="ghost"
               size="sm"
               className="justify-start text-destructive hover:bg-destructive/15 hover:text-destructive"
-              onClick={onSignOut}
+              onClick={() => void signOut()}
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign out
@@ -88,7 +78,7 @@ export function EditorAccountMenu({
       variant="outline"
       size="default"
       aria-label="Sign in"
-      onClick={onOpenAuth}
+      onClick={() => setAuthOpen(true)}
     >
       <LogIn className="h-3.5 w-3.5" />
       <span>Sign in</span>

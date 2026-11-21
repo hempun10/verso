@@ -9,38 +9,29 @@ import {
   Upload,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import type { DocumentListItem, FolderItem } from "@/types";
-import type { ContextMenuState } from "./types";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { useDashboard } from "./DashboardContext";
 
-interface DashboardContextMenuProps {
-  menu: ContextMenuState;
-  uploadTargetFolderId: string | null;
-  onClose: () => void;
-  onOpenNewFolder: (parentId: string | null) => void;
-  onChooseFile: (folderId: string | null) => void;
-  onRefresh: () => void;
-  onOpenFolder: (folderId: string) => void;
-  onRenameFolder: (folder: FolderItem) => void;
-  onDeleteFolder: (folderId: string) => void;
-  onOpenDocument: (docId: string) => void;
-  onMoveDocument: (doc: DocumentListItem) => void;
-  onDeleteDocument: (docId: string) => void;
-}
+export function DashboardContextMenu() {
+  const { refreshWorkspace } = useWorkspace();
+  const { session, chooseFile } = useEditor();
+  const {
+    contextMenu: menu,
+    setContextMenu,
+    uploadTargetFolderId,
+    openNewFolderDialog,
+    openFolder,
+    setRenameTarget,
+    setRenameValue,
+    setMoveTarget,
+    handleDeleteFolder,
+    handleDeleteDoc,
+  } = useDashboard();
 
-export function DashboardContextMenu({
-  menu,
-  uploadTargetFolderId,
-  onClose,
-  onOpenNewFolder,
-  onChooseFile,
-  onRefresh,
-  onOpenFolder,
-  onRenameFolder,
-  onDeleteFolder,
-  onOpenDocument,
-  onMoveDocument,
-  onDeleteDocument,
-}: DashboardContextMenuProps) {
+  if (!menu) return null;
+  const close = () => setContextMenu(null);
+
   return (
     <div
       role="menu"
@@ -55,7 +46,7 @@ export function DashboardContextMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => onOpenNewFolder(uploadTargetFolderId)}
+            onClick={() => openNewFolderDialog(uploadTargetFolderId)}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
           >
             <FolderPlus className="h-3.5 w-3.5 text-[#7170ff]" />
@@ -65,8 +56,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onChooseFile(uploadTargetFolderId);
+              close();
+              chooseFile(uploadTargetFolderId);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
           >
@@ -78,8 +69,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onRefresh();
+              close();
+              void refreshWorkspace(true);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
           >
@@ -95,8 +86,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onOpenFolder(menu.folder.folder_id);
+              close();
+              openFolder(menu.folder.folder_id);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
           >
@@ -106,7 +97,7 @@ export function DashboardContextMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => onOpenNewFolder(menu.folder.folder_id)}
+            onClick={() => openNewFolderDialog(menu.folder.folder_id)}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
           >
             <FolderPlus className="h-3.5 w-3.5 text-[#8a8f98]" />
@@ -116,8 +107,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onChooseFile(menu.folder.folder_id);
+              close();
+              chooseFile(menu.folder.folder_id);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
           >
@@ -129,8 +120,9 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onRenameFolder(menu.folder);
+              close();
+              setRenameTarget(menu.folder);
+              setRenameValue(menu.folder.name);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
           >
@@ -140,7 +132,7 @@ export function DashboardContextMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => onDeleteFolder(menu.folder.folder_id)}
+            onClick={() => void handleDeleteFolder(menu.folder.folder_id)}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -155,8 +147,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onOpenDocument(menu.doc.doc_id);
+              close();
+              void session.loadSavedDocument(menu.doc.doc_id);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
           >
@@ -167,8 +159,8 @@ export function DashboardContextMenu({
             type="button"
             role="menuitem"
             onClick={() => {
-              onClose();
-              onMoveDocument(menu.doc);
+              close();
+              setMoveTarget(menu.doc);
             }}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
           >
@@ -179,7 +171,7 @@ export function DashboardContextMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => onDeleteDocument(menu.doc.doc_id)}
+            onClick={() => void handleDeleteDoc(menu.doc.doc_id)}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
           >
             <Trash2 className="h-3.5 w-3.5" />

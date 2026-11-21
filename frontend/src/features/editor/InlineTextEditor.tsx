@@ -1,4 +1,3 @@
-import type { MutableRefObject, RefObject } from "react";
 import {
   cssFontStack,
   editorBackgroundForRuns,
@@ -6,55 +5,21 @@ import {
   getInitialRuns,
   getSelectionOffsets,
   parseRunsFromDom,
-  type ActiveRangeStyle,
-  type SelectionRange,
 } from "@/lib/runs";
-import type { TextBlock, TextEdit, TextRun, TextRunStyle } from "@/types";
+import type { TextBlock } from "@/types";
+import { useEditor } from "./EditorContext";
 
-interface InlineTextEditorProps {
-  block: TextBlock;
-  existingEdit: TextEdit | null;
-  zoom: number;
-  draftRuns: TextRun[];
-  activeRangeStyle: ActiveRangeStyle | null;
-  editorRef: RefObject<HTMLDivElement | null>;
-  inspectorRef: RefObject<HTMLDivElement | null>;
-  inspectorPointerDownRef: MutableRefObject<boolean>;
-  skippedBlurBlockIdRef: MutableRefObject<string | null>;
-  draftRunsRef: MutableRefObject<TextRun[]>;
-  selectionRangeRef: MutableRefObject<SelectionRange | null>;
-  onDraftRunsChange: (runs: TextRun[]) => void;
-  onSelectionRangeChange: (range: SelectionRange) => void;
-  onCommitRuns: (block: TextBlock, runs: TextRun[]) => void;
-  onUpdateStyle: (patch: Partial<TextRunStyle>) => void;
-  onClose: () => void;
-}
-
-export function InlineTextEditor({
-  block,
-  existingEdit,
-  zoom,
-  draftRuns,
-  activeRangeStyle,
-  editorRef,
-  inspectorRef,
-  inspectorPointerDownRef,
-  skippedBlurBlockIdRef,
-  draftRunsRef,
-  selectionRangeRef,
-  onDraftRunsChange,
-  onSelectionRangeChange,
-  onCommitRuns,
-  onUpdateStyle,
-  onClose,
-}: InlineTextEditorProps) {
+export function InlineTextEditor({ block }: { block: TextBlock }) {
+  const { editsMap, zoom, actions } = useEditor();
+  const existingEdit = editsMap[block.id] ?? null;
   const [x0, y0, x1, y1] = block.bbox;
-  const fallbackStyle = draftRuns.length > 0 ? extractStyle(draftRuns[0]) : {};
-  const editorBg = editorBackgroundForRuns(block, draftRuns);
+  const fallbackStyle =
+    actions.draftRuns.length > 0 ? extractStyle(actions.draftRuns[0]) : {};
+  const editorBg = editorBackgroundForRuns(block, actions.draftRuns);
 
   return (
     <div
-      ref={editorRef}
+      ref={actions.editorRef}
       role="textbox"
       aria-label="Edit text block"
       contentEditable
@@ -78,12 +43,12 @@ export function InlineTextEditor({
       }}
       onInput={(e) => {
         const nextRuns = parseRunsFromDom(e.currentTarget, fallbackStyle);
-        draftRunsRef.current = nextRuns;
-        onDraftRunsChange(nextRuns);
+        actions.draftRunsRef.current = nextRuns;
+        actions.setDraftRuns(nextRuns);
         const offsets = getSelectionOffsets(e.currentTarget);
         if (offsets) {
-          selectionRangeRef.current = offsets;
-          onSelectionRangeChange(offsets);
+          actions.selectionRangeRef.current = offsets;
+          actions.setSelectionRange(offsets);
         }
       }}
       onPaste={(e) => {
@@ -94,40 +59,44 @@ export function InlineTextEditor({
         document.execCommand("insertText", false, text);
       }}
       onBlur={(e) => {
-        if (skippedBlurBlockIdRef.current === block.id) {
-          skippedBlurBlockIdRef.current = null;
+        if (actions.skippedBlurBlockIdRef.current === block.id) {
+          actions.skippedBlurBlockIdRef.current = null;
           return;
         }
-        onCommitRuns(block, draftRunsRef.current);
+        actions.commitRuns(block, actions.draftRunsRef.current);
         const nextEl =
           e.relatedTarget instanceof Element ? e.relatedTarget : null;
         const movingToInspector =
-          inspectorPointerDownRef.current ||
+          actions.inspectorPointerDownRef.current ||
           Boolean(
             nextEl &&
-              (inspectorRef.current?.contains(nextEl) ||
+              (actions.inspectorRef.current?.contains(nextEl) ||
                 nextEl.closest("[data-inspector-portal]")),
           );
-        if (!movingToInspector) onClose();
+        if (!movingToInspector) actions.setSelectedId(null);
       }}
       onKeyDown={(e) => {
         if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
           const k = e.key.toLowerCase();
           if (k === "b") {
             e.preventDefault();
-            onUpdateStyle({ bold_override: !(activeRangeStyle?.bold ?? false) });
+            actions.updateSelectedStyle({
+              bold_override: !(actions.activeRangeStyle?.bold ?? false),
+            });
             return;
           }
           if (k === "i") {
             e.preventDefault();
-            onUpdateStyle({
-              italic_override: !(activeRangeStyle?.italic ?? false),
+            actions.updateSelectedStyle({
+              italic_override: !(actions.activeRangeStyle?.italic ?? false),
             });
             return;
           }
           if (k === "u") {
             e.preventDefault();
-            onUpdateStyle({ underline: !(activeRangeStyle?.underline ?? false) });
+            actions.updateSelectedStyle({
+              underline: !(actions.activeRangeStyle?.underline ?? false),
+            });
             return;
           }
         }
@@ -137,23 +106,23 @@ export function InlineTextEditor({
           e.key.toLowerCase() === "x"
         ) {
           e.preventDefault();
-          onUpdateStyle({
-            strikethrough: !(activeRangeStyle?.strikethrough ?? false),
+          actions.updateSelectedStyle({
+            strikethrough: !(actions.activeRangeStyle?.strikethrough ?? false),
           });
           return;
         }
         if (e.key === "Enter") {
           e.preventDefault();
-          skippedBlurBlockIdRef.current = block.id;
-          onCommitRuns(block, draftRunsRef.current);
-          onClose();
+          actions.skippedBlurBlockIdRef.current = block.id;
+          actions.commitRuns(block, actions.draftRunsRef.current);
+          actions.setSelectedId(null);
         } else if (e.key === "Escape") {
           e.preventDefault();
-          skippedBlurBlockIdRef.current = block.id;
+          actions.skippedBlurBlockIdRef.current = block.id;
           const restored = getInitialRuns(block, existingEdit);
-          draftRunsRef.current = restored;
-          onDraftRunsChange(restored);
-          onClose();
+          actions.draftRunsRef.current = restored;
+          actions.setDraftRuns(restored);
+          actions.setSelectedId(null);
         }
       }}
     />

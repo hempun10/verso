@@ -1,27 +1,20 @@
-import type React from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronRight, Folder, HardDrive } from "lucide-react";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { formatBytes } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type {
-  ContextMenuTarget,
-  DriveSection,
-  FolderCounts,
-  FolderTreeRow,
-} from "./types";
+import { useDashboard } from "./DashboardContext";
 
-export function SidebarStorageWidget({
-  usedBytes,
-  quotaBytes,
-  usedPct,
-  progressBarColor,
-  onManageStorage,
-}: {
-  usedBytes: number;
-  quotaBytes: number;
-  usedPct: number;
-  progressBarColor: string;
-  onManageStorage: () => void;
-}) {
+export function SidebarStorageWidget() {
+  const {
+    usedBytes,
+    quotaBytes,
+    usedPct,
+    progressBarColor,
+    setSection,
+    setMobileNavOpen,
+  } = useDashboard();
+
   return (
     <div className="mt-1 px-3 pt-1 pb-2" data-storage-widget="true">
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#1f2023]">
@@ -38,7 +31,10 @@ export function SidebarStorageWidget({
       </p>
       <button
         type="button"
-        onClick={onManageStorage}
+        onClick={() => {
+          setSection("storage");
+          setMobileNavOpen(false);
+        }}
         className="mt-2.5 inline-flex h-8 w-full cursor-pointer items-center justify-center rounded-full border border-[#2a2b2f] bg-transparent text-[12px] font-medium text-[#7170ff] transition-colors hover:border-[#7170ff]/50 hover:bg-[#7170ff]/10"
       >
         Manage storage
@@ -47,31 +43,21 @@ export function SidebarStorageWidget({
   );
 }
 
-interface SidebarFolderTreeProps {
-  section: DriveSection;
-  activeFolderId: string | null;
-  documentCount: number;
-  folderTreeRows: FolderTreeRow[];
-  folderCounts: Map<string, FolderCounts>;
-  driveTreeExpanded: boolean;
-  onToggleDriveTree: () => void;
-  onSelectRoot: () => void;
-  onSelectFolder: (folderId: string) => void;
-  onOpenContextMenu: (e: React.MouseEvent, target: ContextMenuTarget) => void;
-}
+export function SidebarFolderTree() {
+  const { savedDocs, setCurrentFolderId } = useWorkspace();
+  const {
+    section,
+    setSection,
+    activeFolderId,
+    folderTreeRows,
+    folderCounts,
+    setMobileNavOpen,
+    openContextMenu,
+  } = useDashboard();
 
-export function SidebarFolderTree({
-  section,
-  activeFolderId,
-  documentCount,
-  folderTreeRows,
-  folderCounts,
-  driveTreeExpanded,
-  onToggleDriveTree,
-  onSelectRoot,
-  onSelectFolder,
-  onOpenContextMenu,
-}: SidebarFolderTreeProps) {
+  // Colocated tree collapse state owned strictly by this component.
+  const [expanded, setExpanded] = useState(true);
+
   return (
     <div className="mt-1 flex flex-col gap-0.5">
       <div
@@ -84,14 +70,12 @@ export function SidebarFolderTree({
       >
         <button
           type="button"
-          aria-label={
-            driveTreeExpanded ? "Collapse folders" : "Expand folders"
-          }
-          onClick={onToggleDriveTree}
+          aria-label={expanded ? "Collapse folders" : "Expand folders"}
+          onClick={() => setExpanded((v) => !v)}
           className="flex h-7 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#62666d] hover:text-[#f7f8f8]"
         >
           {folderTreeRows.length > 0 ? (
-            driveTreeExpanded ? (
+            expanded ? (
               <ChevronDown className="h-3 w-3" />
             ) : (
               <ChevronRight className="h-3 w-3" />
@@ -102,7 +86,11 @@ export function SidebarFolderTree({
         </button>
         <button
           type="button"
-          onClick={onSelectRoot}
+          onClick={() => {
+            setSection("drive");
+            setCurrentFolderId(null);
+            setMobileNavOpen(false);
+          }}
           className="flex flex-1 cursor-pointer items-center justify-between py-2 text-left"
         >
           <span className="flex items-center gap-2.5">
@@ -117,12 +105,12 @@ export function SidebarFolderTree({
             <span>My Drive</span>
           </span>
           <span className="text-[11px] text-[#62666d] tabular-nums">
-            {documentCount}
+            {savedDocs.length}
           </span>
         </button>
       </div>
 
-      {driveTreeExpanded && folderTreeRows.length > 0 && (
+      {expanded && folderTreeRows.length > 0 && (
         <div className="flex flex-col gap-0.5 py-0.5">
           {folderTreeRows.map(({ folder, depth }) => {
             const isActive =
@@ -132,9 +120,13 @@ export function SidebarFolderTree({
               <button
                 key={folder.folder_id}
                 type="button"
-                onClick={() => onSelectFolder(folder.folder_id)}
+                onClick={() => {
+                  setSection("drive");
+                  setCurrentFolderId(folder.folder_id);
+                  setMobileNavOpen(false);
+                }}
                 onContextMenu={(e) =>
-                  onOpenContextMenu(e, { kind: "folder", folder })
+                  openContextMenu(e, { kind: "folder", folder })
                 }
                 style={{ paddingLeft: `${26 + depth * 14}px` }}
                 className={cn(

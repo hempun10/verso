@@ -1,12 +1,8 @@
-import type React from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cn } from "@/lib/utils";
-import type {
-  DocumentListItem,
-  FolderItem,
-  StorageUsage,
-  UploadLimits,
-} from "@/types";
+import { useDashboard } from "./DashboardContext";
 import {
   DashboardEmptyState,
   DashboardSkeleton,
@@ -14,86 +10,30 @@ import {
 } from "./DashboardEmptyStates";
 import { FileViews } from "./FileViews";
 import { FolderGrid } from "./FolderGrid";
-import type {
-  ContextMenuTarget,
-  DriveSection,
-  FolderCounts,
-  ViewMode,
-} from "./types";
 
-interface DashboardCanvasProps {
-  section: DriveSection;
-  search: string;
-  query: string;
-  loading: boolean;
-  viewMode: ViewMode;
-  activeFolderId: string | null;
-  activeFolderName: string;
-  breadcrumbs: FolderItem[];
-  visibleFolders: FolderItem[];
-  visibleDocs: DocumentListItem[];
-  totalDocsCount: number;
-  folderMap: Map<string, FolderItem>;
-  folderCounts: Map<string, FolderCounts>;
-  suggestedFoldersOpen: boolean;
-  suggestedFilesOpen: boolean;
-  busyItemId: string | null;
-  uploadTargetFolderId: string | null;
-  storageUsage: StorageUsage | null;
-  uploadLimits: UploadLimits;
-  usedBytes: number;
-  quotaBytes: number;
-  usedPct: number;
-  progressBarColor: string;
-  onToggleSuggestedFolders: () => void;
-  onToggleSuggestedFiles: () => void;
-  onSelectFolder: (folderId: string | null) => void;
-  onOpenFolder: (folderId: string) => void;
-  onOpenDocument: (docId: string) => void;
-  onChooseFile: (folderId: string | null) => void;
-  onOpenNewFolder: (parentId: string | null) => void;
-  onOpenContextMenu: (e: React.MouseEvent, target: ContextMenuTarget) => void;
-}
+export function DashboardCanvas() {
+  const { workspaceLoading, setCurrentFolderId } = useWorkspace();
+  const {
+    section,
+    search,
+    query,
+    activeFolderId,
+    breadcrumbs,
+    visibleFolders,
+    visibleDocs,
+    openContextMenu,
+  } = useDashboard();
 
-export function DashboardCanvas({
-  section,
-  search,
-  query,
-  loading,
-  viewMode,
-  activeFolderId,
-  activeFolderName,
-  breadcrumbs,
-  visibleFolders,
-  visibleDocs,
-  totalDocsCount,
-  folderMap,
-  folderCounts,
-  suggestedFoldersOpen,
-  suggestedFilesOpen,
-  busyItemId,
-  uploadTargetFolderId,
-  storageUsage,
-  uploadLimits,
-  usedBytes,
-  quotaBytes,
-  usedPct,
-  progressBarColor,
-  onToggleSuggestedFolders,
-  onToggleSuggestedFiles,
-  onSelectFolder,
-  onOpenFolder,
-  onOpenDocument,
-  onChooseFile,
-  onOpenNewFolder,
-  onOpenContextMenu,
-}: DashboardCanvasProps) {
+  // Colocated section-collapse toggles owned strictly by DashboardCanvas.
+  const [suggestedFoldersOpen, setSuggestedFoldersOpen] = useState(true);
+  const [suggestedFilesOpen, setSuggestedFilesOpen] = useState(true);
+
   const isEmpty = visibleFolders.length === 0 && visibleDocs.length === 0;
 
   return (
     <main
       data-drive-canvas="true"
-      onContextMenu={(e) => onOpenContextMenu(e, { kind: "canvas" })}
+      onContextMenu={(e) => openContextMenu(e, { kind: "canvas" })}
       className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-6 sm:px-7"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
@@ -105,7 +45,7 @@ export function DashboardCanvas({
           <div className="flex flex-wrap items-center gap-1 text-[18px] font-medium tracking-tight">
             <button
               type="button"
-              onClick={() => onSelectFolder(null)}
+              onClick={() => setCurrentFolderId(null)}
               className={cn(
                 "cursor-pointer rounded-lg px-2 py-0.5 transition-colors",
                 activeFolderId === null
@@ -120,7 +60,7 @@ export function DashboardCanvas({
                 <ChevronRight className="h-4 w-4 text-[#62666d]" />
                 <button
                   type="button"
-                  onClick={() => onSelectFolder(crumb.folder_id)}
+                  onClick={() => setCurrentFolderId(crumb.folder_id)}
                   className={cn(
                     "max-w-[200px] cursor-pointer truncate rounded-lg px-2 py-0.5 transition-colors",
                     idx === breadcrumbs.length - 1
@@ -149,19 +89,9 @@ export function DashboardCanvas({
         </span>
       </div>
 
-      {section === "storage" && !query && (
-        <StorageSummaryCard
-          usedBytes={usedBytes}
-          quotaBytes={quotaBytes}
-          usedPct={usedPct}
-          progressBarColor={progressBarColor}
-          storageUsage={storageUsage}
-          totalDocsCount={totalDocsCount}
-          uploadLimits={uploadLimits}
-        />
-      )}
+      {section === "storage" && !query && <StorageSummaryCard />}
 
-      {loading ? (
+      {workspaceLoading ? (
         <DashboardSkeleton />
       ) : section === "home" && !query ? (
         <div className="flex flex-1 flex-col gap-6">
@@ -169,7 +99,7 @@ export function DashboardCanvas({
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={onToggleSuggestedFolders}
+                onClick={() => setSuggestedFoldersOpen((v) => !v)}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-[13px] font-medium text-[#d4d4d8] transition-colors hover:bg-[#1a1b1f]"
               >
                 {suggestedFoldersOpen ? (
@@ -180,16 +110,7 @@ export function DashboardCanvas({
                 <span>Suggested folders</span>
               </button>
               {suggestedFoldersOpen && (
-                <FolderGrid
-                  folders={visibleFolders}
-                  folderMap={folderMap}
-                  folderCounts={folderCounts}
-                  viewMode={viewMode}
-                  compactPill
-                  busyItemId={busyItemId}
-                  onOpenFolder={onOpenFolder}
-                  onOpenContextMenu={onOpenContextMenu}
-                />
+                <FolderGrid folders={visibleFolders} compactPill />
               )}
             </div>
           )}
@@ -198,7 +119,7 @@ export function DashboardCanvas({
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={onToggleSuggestedFiles}
+                onClick={() => setSuggestedFilesOpen((v) => !v)}
                 className={cn(
                   "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",
                   suggestedFilesOpen
@@ -213,79 +134,29 @@ export function DashboardCanvas({
                 )}
                 <span>Suggested files</span>
               </button>
-              {suggestedFilesOpen && (
-                <FileViews
-                  documents={visibleDocs}
-                  folderMap={folderMap}
-                  section={section}
-                  viewMode={viewMode}
-                  busyItemId={busyItemId}
-                  onOpenDocument={onOpenDocument}
-                  onOpenContextMenu={onOpenContextMenu}
-                />
-              )}
+              {suggestedFilesOpen && <FileViews documents={visibleDocs} />}
             </div>
           )}
 
-          {isEmpty && (
-            <DashboardEmptyState
-              mode="home"
-              section={section}
-              search={search}
-              query={query}
-              activeFolderId={activeFolderId}
-              activeFolderName={activeFolderName}
-              uploadTargetFolderId={uploadTargetFolderId}
-              onChooseFile={onChooseFile}
-              onOpenNewFolder={onOpenNewFolder}
-            />
-          )}
+          {isEmpty && <DashboardEmptyState mode="home" />}
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-7">
           {visibleFolders.length > 0 && (
             <div className="space-y-3">
               <div className="text-xs font-medium text-[#8a8f98]">Folders</div>
-              <FolderGrid
-                folders={visibleFolders}
-                folderMap={folderMap}
-                folderCounts={folderCounts}
-                viewMode={viewMode}
-                busyItemId={busyItemId}
-                onOpenFolder={onOpenFolder}
-                onOpenContextMenu={onOpenContextMenu}
-              />
+              <FolderGrid folders={visibleFolders} />
             </div>
           )}
 
           {visibleDocs.length > 0 && (
             <div className="space-y-3">
               <div className="text-xs font-medium text-[#8a8f98]">Files</div>
-              <FileViews
-                documents={visibleDocs}
-                folderMap={folderMap}
-                section={section}
-                viewMode={viewMode}
-                busyItemId={busyItemId}
-                onOpenDocument={onOpenDocument}
-                onOpenContextMenu={onOpenContextMenu}
-              />
+              <FileViews documents={visibleDocs} />
             </div>
           )}
 
-          {isEmpty && (
-            <DashboardEmptyState
-              mode="section"
-              section={section}
-              search={search}
-              query={query}
-              activeFolderId={activeFolderId}
-              activeFolderName={activeFolderName}
-              uploadTargetFolderId={uploadTargetFolderId}
-              onChooseFile={onChooseFile}
-              onOpenNewFolder={onOpenNewFolder}
-            />
-          )}
+          {isEmpty && <DashboardEmptyState mode="section" />}
         </div>
       )}
     </main>

@@ -1,30 +1,23 @@
-import type React from "react";
 import { Folder, Loader2, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FolderItem } from "@/types";
-import type { ContextMenuTarget, FolderCounts, ViewMode } from "./types";
+import { useDashboard } from "./DashboardContext";
 
 interface FolderGridProps {
   folders: FolderItem[];
-  folderMap: Map<string, FolderItem>;
-  folderCounts: Map<string, FolderCounts>;
-  viewMode: ViewMode;
   compactPill?: boolean;
-  busyItemId: string | null;
-  onOpenFolder: (folderId: string) => void;
-  onOpenContextMenu: (e: React.MouseEvent, target: ContextMenuTarget) => void;
 }
 
-export function FolderGrid({
-  folders,
-  folderMap,
-  folderCounts,
-  viewMode,
-  compactPill = false,
-  busyItemId,
-  onOpenFolder,
-  onOpenContextMenu,
-}: FolderGridProps) {
+export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
+  const {
+    folderMap,
+    folderCounts,
+    viewMode,
+    busyItemId,
+    openFolder,
+    openContextMenu,
+  } = useDashboard();
+
   if (compactPill) {
     return (
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -38,13 +31,13 @@ export function FolderGrid({
             <div
               key={folder.folder_id}
               onContextMenu={(e) =>
-                onOpenContextMenu(e, { kind: "folder", folder })
+                openContextMenu(e, { kind: "folder", folder })
               }
               className="group flex items-center justify-between gap-2 rounded-xl border border-[#1f2023] bg-[#141516] px-3.5 py-2.5 transition-colors hover:border-[#2a2b2f] hover:bg-[#1a1b1f]"
             >
               <button
                 type="button"
-                onClick={() => onOpenFolder(folder.folder_id)}
+                onClick={() => openFolder(folder.folder_id)}
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
               >
                 <Folder className="h-4 w-4 shrink-0 text-[#a1a1aa] transition-colors group-hover:text-[#7170ff]" />
@@ -61,9 +54,7 @@ export function FolderGrid({
                 type="button"
                 aria-label={`Folder options for ${folder.name}`}
                 disabled={isDeleting}
-                onClick={(e) =>
-                  onOpenContextMenu(e, { kind: "folder", folder })
-                }
+                onClick={(e) => openContextMenu(e, { kind: "folder", folder })}
                 className="cursor-pointer rounded-full p-1 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
               >
                 {isDeleting ? (
@@ -111,7 +102,7 @@ export function FolderGrid({
           <div
             key={folder.folder_id}
             onContextMenu={(e) =>
-              onOpenContextMenu(e, { kind: "folder", folder })
+              openContextMenu(e, { kind: "folder", folder })
             }
             className={cn(
               "group flex items-center justify-between gap-2 transition-colors",
@@ -122,7 +113,7 @@ export function FolderGrid({
           >
             <button
               type="button"
-              onClick={() => onOpenFolder(folder.folder_id)}
+              onClick={() => openFolder(folder.folder_id)}
               className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
             >
               <Folder className="h-4 w-4 shrink-0 text-[#7170ff]" />
@@ -139,7 +130,7 @@ export function FolderGrid({
               type="button"
               aria-label={`Folder options for ${folder.name}`}
               disabled={isDeleting}
-              onClick={(e) => onOpenContextMenu(e, { kind: "folder", folder })}
+              onClick={(e) => openContextMenu(e, { kind: "folder", folder })}
               className="cursor-pointer rounded-full p-1 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
             >
               {isDeleting ? (

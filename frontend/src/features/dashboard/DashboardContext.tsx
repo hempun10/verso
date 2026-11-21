@@ -1,9 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type React from "react";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { useWindowKeyDown } from "@/hooks/useKeyboardShortcuts";
 import { useWindowFileDrop } from "@/hooks/useWindowFileDrop";
 import { isEditableTarget } from "@/lib/dom";
-import type { DocumentListItem, FolderItem, StorageUsage } from "@/types";
+import type { DocumentListItem, FolderItem } from "@/types";
 import {
   buildBreadcrumbs,
   buildFolderCounts,
@@ -15,50 +25,22 @@ import {
 import type {
   ContextMenuState,
   ContextMenuTarget,
+  DashboardContextValue,
   DriveSection,
   ViewMode,
 } from "./types";
 
-interface UseDashboardStateArgs {
-  documents: DocumentListItem[];
-  folders: FolderItem[];
-  storageUsage: StorageUsage | null;
-  currentFolderId: string | null;
-  onSelectFolder: (folderId: string | null) => void;
-  onChooseFile: (folderId: string | null) => void;
-  onUploadFiles: (files: File[], folderId: string | null) => void;
-  onDeleteDocument: (docId: string) => Promise<void>;
-  onMoveDocument: (docId: string, folderId: string | null) => Promise<void>;
-  onCreateFolder: (name: string, parentId: string | null) => Promise<void>;
-  onRenameFolder: (folderId: string, name: string) => Promise<void>;
-  onDeleteFolder: (folderId: string) => Promise<void>;
-  onRefresh: () => void;
-}
+const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-export function useDashboardState({
-  documents,
-  folders,
-  storageUsage,
-  currentFolderId,
-  onSelectFolder,
-  onChooseFile,
-  onUploadFiles,
-  onDeleteDocument,
-  onMoveDocument,
-  onCreateFolder,
-  onRenameFolder,
-  onDeleteFolder,
-  onRefresh,
-}: UseDashboardStateArgs) {
+export function DashboardProvider({ children }: { children: ReactNode }) {
+  const workspace = useWorkspace();
+  const { upload, chooseFile, deleteDocument } = useEditor();
+
   const [section, setSection] = useState<DriveSection>(() =>
-    currentFolderId ? "drive" : "home",
+    workspace.currentFolderId ? "drive" : "home",
   );
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
-  const [driveTreeExpanded, setDriveTreeExpanded] = useState(true);
-  const [suggestedFoldersOpen, setSuggestedFoldersOpen] = useState(true);
-  const [suggestedFilesOpen, setSuggestedFilesOpen] = useState(true);
-  const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -76,9 +58,14 @@ export function useDashboardState({
   const [movingTargetId, setMovingTargetId] = useState<string | null>(null);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
 
-  const folderMap = useMemo(() => buildFolderMap(folders), [folders]);
+  const folderMap = useMemo(
+    () => buildFolderMap(workspace.folders),
+    [workspace.folders],
+  );
   const activeFolderId =
-    currentFolderId && folderMap.has(currentFolderId) ? currentFolderId : null;
+    workspace.currentFolderId && folderMap.has(workspace.currentFolderId)
+      ? workspace.currentFolderId
+      : null;
   const breadcrumbs = useMemo(
     () => buildBreadcrumbs(activeFolderId, folderMap),
     [activeFolderId, folderMap],
@@ -95,7 +82,8 @@ export function useDashboardState({
       : "My Drive";
 
   const pageDragging = useWindowFileDrop({
-    onDropFiles: (files) => onUploadFiles(files, uploadTargetFolderId),
+    onDropFiles: (files) =>
+      void upload.handleUploadFiles(files, uploadTargetFolderId),
   });
 
   useEffect(() => {
@@ -113,7 +101,6 @@ export function useDashboardState({
     setNewFolderParentId(parentId);
     setNewFolderName("");
     setNewFolderOpen(true);
-    setNewMenuOpen(false);
     setContextMenu(null);
   };
 
@@ -140,20 +127,27 @@ export function useDashboardState({
       openNewFolderDialog(uploadTargetFolderId);
     } else if (keyLower === "u") {
       e.preventDefault();
-      setNewMenuOpen(false);
       setContextMenu(null);
-      onChooseFile(uploadTargetFolderId);
+      chooseFile(uploadTargetFolderId);
     } else if (keyLower === "g") {
       e.preventDefault();
       setViewMode((m) => (m === "grid" ? "list" : "grid"));
     } else if (keyLower === "r") {
       e.preventDefault();
-      onRefresh();
+      void workspace.refreshWorkspace(true);
     } else if (e.key === "Backspace" && section === "drive" && activeFolderId) {
       e.preventDefault();
-      onSelectFolder(folderMap.get(activeFolderId)?.parent_id ?? null);
+      workspace.setCurrentFolderId(
+        folderMap.get(activeFolderId)?.parent_id ?? null,
+      );
     }
   });
+
+  const openFolder = (folderId: string) => {
+    setSearch("");
+    setSection("drive");
+    workspace.setCurrentFolderId(folderId);
+  };
 
   const openContextMenu = (e: React.MouseEvent, target: ContextMenuTarget) => {
     e.preventDefault();
@@ -164,46 +158,39 @@ export function useDashboardState({
   };
 
   const folderCounts = useMemo(
-    () => buildFolderCounts(folders, documents),
-    [documents, folders],
+    () => buildFolderCounts(workspace.folders, workspace.savedDocs),
+    [workspace.folders, workspace.savedDocs],
   );
   const folderTreeRows = useMemo(
-    () => buildFolderTreeRows(folders, folderMap),
-    [folders, folderMap],
+    () => buildFolderTreeRows(workspace.folders, folderMap),
+    [workspace.folders, folderMap],
   );
   const query = search.trim().toLowerCase();
   const visibleFolders = useMemo(
-    () => filterVisibleFolders(folders, folderMap, section, activeFolderId, query),
-    [activeFolderId, folderMap, folders, query, section],
+    () => filterVisibleFolders(workspace.folders, folderMap, section, activeFolderId, query),
+    [activeFolderId, folderMap, query, section, workspace.folders],
   );
   const visibleDocs = useMemo(
-    () => filterVisibleDocs(documents, folderMap, section, activeFolderId, query),
-    [activeFolderId, documents, folderMap, query, section],
+    () => filterVisibleDocs(workspace.savedDocs, folderMap, section, activeFolderId, query),
+    [activeFolderId, folderMap, query, section, workspace.savedDocs],
   );
   const sharedCount = useMemo(
-    () => documents.filter((d) => d.is_shared).length,
-    [documents],
+    () => workspace.savedDocs.filter((d) => d.is_shared).length,
+    [workspace.savedDocs],
   );
 
-  const usedBytes = storageUsage?.used_bytes ?? 0;
-  const quotaBytes = storageUsage?.quota_bytes ?? 2_000_000_000;
-  const usedPct = Math.min(
-    100,
-    quotaBytes > 0 ? (usedBytes / quotaBytes) * 100 : 0,
-  );
+  const usedBytes = workspace.storageUsage?.used_bytes ?? 0;
+  const quotaBytes = workspace.storageUsage?.quota_bytes ?? 2_000_000_000;
+  const usedPct = Math.min(100, quotaBytes > 0 ? (usedBytes / quotaBytes) * 100 : 0);
   const progressBarColor =
-    usedPct >= 95
-      ? "bg-[#e0705f]"
-      : usedPct >= 80
-        ? "bg-[#f2b53d]"
-        : "bg-[#7170ff]";
+    usedPct >= 95 ? "bg-[#e0705f]" : usedPct >= 80 ? "bg-[#f2b53d]" : "bg-[#7170ff]";
 
   const submitNewFolder = async () => {
     const trimmed = newFolderName.trim();
     if (!trimmed || creatingFolder) return;
     setCreatingFolder(true);
     try {
-      await onCreateFolder(trimmed, newFolderParentId);
+      await workspace.handleCreateFolder(trimmed, newFolderParentId);
       setNewFolderName("");
       setNewFolderOpen(false);
     } finally {
@@ -215,7 +202,10 @@ export function useDashboardState({
     if (!renameTarget || !renameValue.trim() || renaming) return;
     setRenaming(true);
     try {
-      await onRenameFolder(renameTarget.folder_id, renameValue.trim());
+      await workspace.handleRenameFolder(
+        renameTarget.folder_id,
+        renameValue.trim(),
+      );
       setRenameTarget(null);
       setRenameValue("");
     } finally {
@@ -227,7 +217,7 @@ export function useDashboardState({
     if (!moveTarget || movingTargetId !== null) return;
     setMovingTargetId(targetFolderId ?? "__root__");
     try {
-      await onMoveDocument(moveTarget.doc_id, targetFolderId);
+      await workspace.handleMoveDocToFolder(moveTarget.doc_id, targetFolderId);
       setMoveTarget(null);
     } finally {
       setMovingTargetId(null);
@@ -238,7 +228,7 @@ export function useDashboardState({
     setContextMenu(null);
     setBusyItemId(folderId);
     try {
-      await onDeleteFolder(folderId);
+      await workspace.handleDeleteFolder(folderId);
     } finally {
       setBusyItemId(null);
     }
@@ -248,7 +238,7 @@ export function useDashboardState({
     setContextMenu(null);
     setBusyItemId(docId);
     try {
-      await onDeleteDocument(docId);
+      await deleteDocument(docId);
     } finally {
       setBusyItemId(null);
     }
@@ -259,23 +249,33 @@ export function useDashboardState({
       ? folderMap.get(newFolderParentId)!.name
       : "My Drive";
 
-  return {
-    section, setSection, viewMode, setViewMode, search, setSearch, query,
-    driveTreeExpanded, setDriveTreeExpanded,
-    suggestedFoldersOpen, setSuggestedFoldersOpen,
-    suggestedFilesOpen, setSuggestedFilesOpen,
-    newMenuOpen, setNewMenuOpen, mobileNavOpen, setMobileNavOpen,
-    contextMenu, setContextMenu, searchInputRef,
-    newFolderOpen, setNewFolderOpen, newFolderName, setNewFolderName,
-    creatingFolder, newFolderParentLabel,
-    renameTarget, setRenameTarget, renameValue, setRenameValue, renaming,
-    moveTarget, setMoveTarget, movingTargetId, busyItemId,
-    folderMap, activeFolderId, breadcrumbs, activeFolderName,
-    uploadTargetFolderId, uploadTargetLabel, pageDragging,
-    folderCounts, folderTreeRows, visibleFolders, visibleDocs, sharedCount,
-    usedBytes, quotaBytes, usedPct, progressBarColor,
-    openContextMenu, openNewFolderDialog,
-    submitNewFolder, submitRenameFolder, handleMoveDoc,
-    handleDeleteFolder, handleDeleteDoc,
-  };
+  return (
+    <DashboardContext
+      value={{
+        section, setSection, viewMode, setViewMode, search, setSearch, query,
+        mobileNavOpen, setMobileNavOpen, contextMenu, setContextMenu,
+        searchInputRef, newFolderOpen, setNewFolderOpen,
+        newFolderName, setNewFolderName, creatingFolder, newFolderParentLabel,
+        renameTarget, setRenameTarget, renameValue, setRenameValue, renaming,
+        moveTarget, setMoveTarget, movingTargetId, busyItemId,
+        folderMap, activeFolderId, breadcrumbs, activeFolderName,
+        uploadTargetFolderId, uploadTargetLabel, pageDragging,
+        folderCounts, folderTreeRows, visibleFolders, visibleDocs, sharedCount,
+        usedBytes, quotaBytes, usedPct, progressBarColor,
+        openFolder, openContextMenu, openNewFolderDialog,
+        submitNewFolder, submitRenameFolder, handleMoveDoc,
+        handleDeleteFolder, handleDeleteDoc,
+      }}
+    >
+      {children}
+    </DashboardContext>
+  );
+}
+
+export function useDashboard(): DashboardContextValue {
+  const ctx = useContext(DashboardContext);
+  if (!ctx) {
+    throw new Error("useDashboard must be used within DashboardProvider");
+  }
+  return ctx;
 }

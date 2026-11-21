@@ -9,55 +9,33 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { DocumentListItem, FolderItem } from "@/types";
-import type { FolderTreeRow } from "./types";
+import { useDashboard } from "./DashboardContext";
 
-interface DashboardModalsProps {
-  newFolderOpen: boolean;
-  newFolderName: string;
-  newFolderParentLabel: string;
-  creatingFolder: boolean;
-  onNewFolderOpenChange: (open: boolean) => void;
-  onNewFolderNameChange: (val: string) => void;
-  onSubmitNewFolder: () => void;
+export function DashboardModals() {
+  const {
+    newFolderOpen,
+    setNewFolderOpen,
+    newFolderName,
+    setNewFolderName,
+    newFolderParentLabel,
+    creatingFolder,
+    submitNewFolder,
+    renameTarget,
+    setRenameTarget,
+    renameValue,
+    setRenameValue,
+    renaming,
+    submitRenameFolder,
+    moveTarget,
+    setMoveTarget,
+    movingTargetId,
+    folderTreeRows,
+    handleMoveDoc,
+  } = useDashboard();
 
-  renameTarget: FolderItem | null;
-  renameValue: string;
-  renaming: boolean;
-  onCloseRename: () => void;
-  onRenameValueChange: (val: string) => void;
-  onSubmitRename: () => void;
-
-  moveTarget: DocumentListItem | null;
-  movingTargetId: string | null;
-  folderTreeRows: FolderTreeRow[];
-  onCloseMove: () => void;
-  onMoveDoc: (targetFolderId: string | null) => void;
-}
-
-export function DashboardModals({
-  newFolderOpen,
-  newFolderName,
-  newFolderParentLabel,
-  creatingFolder,
-  onNewFolderOpenChange,
-  onNewFolderNameChange,
-  onSubmitNewFolder,
-  renameTarget,
-  renameValue,
-  renaming,
-  onCloseRename,
-  onRenameValueChange,
-  onSubmitRename,
-  moveTarget,
-  movingTargetId,
-  folderTreeRows,
-  onCloseMove,
-  onMoveDoc,
-}: DashboardModalsProps) {
   return (
     <>
-      <Dialog open={newFolderOpen} onOpenChange={onNewFolderOpenChange}>
+      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>New folder</DialogTitle>
@@ -73,20 +51,20 @@ export function DashboardModals({
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              onSubmitNewFolder();
+              void submitNewFolder();
             }}
           >
             <Input
               autoFocus
               placeholder="e.g. Contracts, Invoices, 2026"
               value={newFolderName}
-              onChange={(e) => onNewFolderNameChange(e.target.value)}
+              onChange={(e) => setNewFolderName(e.target.value)}
             />
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onNewFolderOpenChange(false)}
+                onClick={() => setNewFolderOpen(false)}
               >
                 Cancel
               </Button>
@@ -104,7 +82,7 @@ export function DashboardModals({
       <Dialog
         open={Boolean(renameTarget)}
         onOpenChange={(open) => {
-          if (!open) onCloseRename();
+          if (!open) setRenameTarget(null);
         }}
       >
         <DialogContent className="max-w-sm">
@@ -118,16 +96,20 @@ export function DashboardModals({
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              onSubmitRename();
+              void submitRenameFolder();
             }}
           >
             <Input
               autoFocus
               value={renameValue}
-              onChange={(e) => onRenameValueChange(e.target.value)}
+              onChange={(e) => setRenameValue(e.target.value)}
             />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onCloseRename}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRenameTarget(null)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={!renameValue.trim() || renaming}>
@@ -141,7 +123,7 @@ export function DashboardModals({
       <Dialog
         open={Boolean(moveTarget)}
         onOpenChange={(open) => {
-          if (!open) onCloseMove();
+          if (!open) setMoveTarget(null);
         }}
       >
         <DialogContent className="max-w-sm">
@@ -159,7 +141,7 @@ export function DashboardModals({
             <button
               type="button"
               disabled={movingTargetId !== null}
-              onClick={() => onMoveDoc(null)}
+              onClick={() => void handleMoveDoc(null)}
               className={cn(
                 "flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60",
                 movingTargetId === "__root__"
@@ -194,7 +176,7 @@ export function DashboardModals({
                   key={folder.folder_id}
                   type="button"
                   disabled={movingTargetId !== null}
-                  onClick={() => onMoveDoc(folder.folder_id)}
+                  onClick={() => void handleMoveDoc(folder.folder_id)}
                   style={{ paddingLeft: `${12 + depth * 16}px` }}
                   className={cn(
                     "flex cursor-pointer items-center justify-between rounded-lg border py-2 pr-3 text-left text-xs font-medium transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60",
@@ -229,7 +211,7 @@ export function DashboardModals({
             <Button
               variant="outline"
               disabled={movingTargetId !== null}
-              onClick={onCloseMove}
+              onClick={() => setMoveTarget(null)}
             >
               Close
             </Button>

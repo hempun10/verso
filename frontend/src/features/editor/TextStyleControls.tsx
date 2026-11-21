@@ -21,9 +21,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cssFontStack } from "@/lib/runs";
 import { cn } from "@/lib/utils";
-import type { TextBlock, TextRunStyle } from "@/types";
+import { useEditor } from "./EditorContext";
 
 const AUTO_FONT_VALUE = "__auto__";
 
@@ -31,41 +32,29 @@ function formatFontLabel(family: string): string {
   return family.charAt(0).toUpperCase() + family.slice(1);
 }
 
-interface TextStyleControlsProps {
-  selectedBlock: TextBlock;
-  overrideFonts: string[];
-  activeBold: boolean;
-  activeItalic: boolean;
-  activeUnderline: boolean;
-  activeStrike: boolean;
-  activeFamilyOverride: string | null;
-  activeSizePt: number;
-  onPointerDownInside: () => void;
-  onUpdateStyle: (patch: Partial<TextRunStyle>) => void;
-  onTransformCase: (mode: "upper" | "lower" | "title") => void;
-}
+export function TextStyleControls() {
+  const { overrideFonts } = useWorkspace();
+  const { actions } = useEditor();
+  const { selectedBlock, activeRangeStyle } = actions;
 
-export function TextStyleControls({
-  selectedBlock,
-  overrideFonts,
-  activeBold,
-  activeItalic,
-  activeUnderline,
-  activeStrike,
-  activeFamilyOverride,
-  activeSizePt,
-  onPointerDownInside,
-  onUpdateStyle,
-  onTransformCase,
-}: TextStyleControlsProps) {
+  if (!selectedBlock || !activeRangeStyle) return null;
+
+  const {
+    bold: activeBold,
+    italic: activeItalic,
+    underline: activeUnderline,
+    strikethrough: activeStrike,
+    fontFamilyOverride: activeFamilyOverride,
+    fontSizePt: activeSizePt,
+  } = activeRangeStyle;
+
   const nudgeSize = (delta: number) => {
     const next = Math.min(144, Math.max(6, +(activeSizePt + delta).toFixed(1)));
-    onUpdateStyle({ font_size_pt_override: next });
+    actions.updateSelectedStyle({ font_size_pt_override: next });
   };
 
   return (
     <>
-      {/* Formatting toggles: B I U S */}
       <div
         className="flex items-center gap-0.5 rounded-lg bg-accent p-0.5"
         role="group"
@@ -83,7 +72,9 @@ export function TextStyleControls({
                 "fmt-btn h-6 w-6 rounded-md",
                 activeBold && "fmt-active shadow-xs",
               )}
-              onClick={() => onUpdateStyle({ bold_override: !activeBold })}
+              onClick={() =>
+                actions.updateSelectedStyle({ bold_override: !activeBold })
+              }
             >
               <Bold className="h-3.5 w-3.5" strokeWidth={2.4} />
             </Button>
@@ -103,7 +94,9 @@ export function TextStyleControls({
                 "fmt-btn h-6 w-6 rounded-md",
                 activeItalic && "fmt-active shadow-xs",
               )}
-              onClick={() => onUpdateStyle({ italic_override: !activeItalic })}
+              onClick={() =>
+                actions.updateSelectedStyle({ italic_override: !activeItalic })
+              }
             >
               <Italic className="h-3.5 w-3.5" />
             </Button>
@@ -123,7 +116,9 @@ export function TextStyleControls({
                 "fmt-btn h-6 w-6 rounded-md",
                 activeUnderline && "fmt-active shadow-xs",
               )}
-              onClick={() => onUpdateStyle({ underline: !activeUnderline })}
+              onClick={() =>
+                actions.updateSelectedStyle({ underline: !activeUnderline })
+              }
             >
               <Underline className="h-3.5 w-3.5" />
             </Button>
@@ -143,7 +138,9 @@ export function TextStyleControls({
                 "fmt-btn h-6 w-6 rounded-md",
                 activeStrike && "fmt-active shadow-xs",
               )}
-              onClick={() => onUpdateStyle({ strikethrough: !activeStrike })}
+              onClick={() =>
+                actions.updateSelectedStyle({ strikethrough: !activeStrike })
+              }
             >
               <Strikethrough className="h-3.5 w-3.5" />
             </Button>
@@ -152,7 +149,6 @@ export function TextStyleControls({
         </Tooltip>
       </div>
 
-      {/* Case transforms */}
       <div
         className="flex items-center gap-0.5 rounded-lg bg-accent p-0.5"
         role="group"
@@ -172,7 +168,7 @@ export function TextStyleControls({
                 size="icon-sm"
                 variant="ghost"
                 className="h-6 w-6 rounded-md text-[11px] font-semibold"
-                onClick={() => onTransformCase(mode)}
+                onClick={() => actions.transformSelectedCase(mode)}
               >
                 {text}
               </Button>
@@ -184,11 +180,10 @@ export function TextStyleControls({
 
       <Separator orientation="vertical" className="mx-0.5 h-5" />
 
-      {/* Font family Select */}
       <Select
         value={activeFamilyOverride ?? AUTO_FONT_VALUE}
         onValueChange={(val) =>
-          onUpdateStyle({
+          actions.updateSelectedStyle({
             font_family_override: val === AUTO_FONT_VALUE ? null : val,
           })
         }
@@ -200,7 +195,9 @@ export function TextStyleControls({
         >
           <SelectValue />
         </SelectTrigger>
-        <SelectContent onMouseDownCapture={() => onPointerDownInside()}>
+        <SelectContent
+          onMouseDownCapture={() => actions.markInspectorPointerDown()}
+        >
           <SelectItem value={AUTO_FONT_VALUE}>
             Auto ({formatFontLabel(selectedBlock.style.font_family)})
           </SelectItem>
@@ -222,7 +219,6 @@ export function TextStyleControls({
         </SelectContent>
       </Select>
 
-      {/* Font size stepper */}
       <div className="flex items-center rounded-md border border-input bg-background shadow-xs">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -248,7 +244,7 @@ export function TextStyleControls({
           value={activeSizePt}
           onChange={(e) => {
             const val = Number(e.target.value);
-            if (val > 0) onUpdateStyle({ font_size_pt_override: val });
+            if (val > 0) actions.updateSelectedStyle({ font_size_pt_override: val });
           }}
           className="h-7 w-13 border-0 px-1.5 text-center text-xs shadow-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />

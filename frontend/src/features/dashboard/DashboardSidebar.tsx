@@ -1,4 +1,4 @@
-import type React from "react";
+import { useState } from "react";
 import {
   Clock,
   Cloud,
@@ -16,72 +16,34 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cn } from "@/lib/utils";
+import { useDashboard } from "./DashboardContext";
 import { SidebarFolderTree, SidebarStorageWidget } from "./SidebarFolderTree";
-import type {
-  ContextMenuTarget,
-  DriveSection,
-  FolderCounts,
-  FolderTreeRow,
-} from "./types";
 
-interface DashboardSidebarProps {
-  section: DriveSection;
-  activeFolderId: string | null;
-  documentCount: number;
-  sharedCount: number;
-  folderTreeRows: FolderTreeRow[];
-  folderCounts: Map<string, FolderCounts>;
-  driveTreeExpanded: boolean;
-  newMenuOpen: boolean;
-  mobileNavOpen: boolean;
-  uploadTargetFolderId: string | null;
-  usedBytes: number;
-  quotaBytes: number;
-  usedPct: number;
-  progressBarColor: string;
-  onGoHome: () => void;
-  onSetSection: (section: DriveSection) => void;
-  onSelectFolder: (folderId: string | null) => void;
-  onToggleDriveTree: () => void;
-  onSetNewMenuOpen: (open: boolean) => void;
-  onCloseMobileNav: () => void;
-  onOpenNewFolder: (parentId: string | null) => void;
-  onChooseFile: (folderId: string | null) => void;
-  onOpenContextMenu: (e: React.MouseEvent, target: ContextMenuTarget) => void;
-}
+export function DashboardSidebar() {
+  const { setCurrentFolderId } = useWorkspace();
+  const { goToLanding, chooseFile } = useEditor();
+  const {
+    section,
+    setSection,
+    sharedCount,
+    mobileNavOpen,
+    setMobileNavOpen,
+    uploadTargetFolderId,
+    openNewFolderDialog,
+  } = useDashboard();
 
-export function DashboardSidebar({
-  section,
-  activeFolderId,
-  documentCount,
-  sharedCount,
-  folderTreeRows,
-  folderCounts,
-  driveTreeExpanded,
-  newMenuOpen,
-  mobileNavOpen,
-  uploadTargetFolderId,
-  usedBytes,
-  quotaBytes,
-  usedPct,
-  progressBarColor,
-  onGoHome,
-  onSetSection,
-  onSelectFolder,
-  onToggleDriveTree,
-  onSetNewMenuOpen,
-  onCloseMobileNav,
-  onOpenNewFolder,
-  onChooseFile,
-  onOpenContextMenu,
-}: DashboardSidebarProps) {
+  // Colocated UI state owned strictly by the sidebar.
+  const [newMenuOpen, setNewMenuOpen] = useState(false);
+
   return (
     <div className="flex h-full flex-col px-3 py-3.5">
       <div className="flex items-center justify-between px-2 pb-3.5">
         <button
           type="button"
-          onClick={onGoHome}
+          onClick={goToLanding}
           className="flex cursor-pointer items-center gap-2.5 text-[15px] font-semibold tracking-[-0.01em] text-[#f7f8f8] transition-opacity hover:opacity-85"
         >
           <BrandLogo size={24} />
@@ -90,7 +52,7 @@ export function DashboardSidebar({
         {mobileNavOpen && (
           <button
             type="button"
-            onClick={onCloseMobileNav}
+            onClick={() => setMobileNavOpen(false)}
             aria-label="Close sidebar"
             className="rounded-md p-1 text-[#8a8f98] hover:bg-[#1c1d1f] hover:text-[#f7f8f8] md:hidden"
           >
@@ -100,7 +62,7 @@ export function DashboardSidebar({
       </div>
 
       <div className="px-1 pb-4">
-        <Popover open={newMenuOpen} onOpenChange={onSetNewMenuOpen}>
+        <Popover open={newMenuOpen} onOpenChange={setNewMenuOpen}>
           <PopoverTrigger asChild>
             <button
               type="button"
@@ -117,7 +79,10 @@ export function DashboardSidebar({
           >
             <button
               type="button"
-              onClick={() => onOpenNewFolder(uploadTargetFolderId)}
+              onClick={() => {
+                setNewMenuOpen(false);
+                openNewFolderDialog(uploadTargetFolderId);
+              }}
               className="flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] transition-colors hover:bg-[#1c1d1f]"
             >
               <span className="flex items-center gap-2.5">
@@ -132,9 +97,9 @@ export function DashboardSidebar({
             <button
               type="button"
               onClick={() => {
-                onSetNewMenuOpen(false);
-                onCloseMobileNav();
-                onChooseFile(uploadTargetFolderId);
+                setNewMenuOpen(false);
+                setMobileNavOpen(false);
+                chooseFile(uploadTargetFolderId);
               }}
               className="flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] transition-colors hover:bg-[#1c1d1f]"
             >
@@ -154,9 +119,9 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={() => {
-            onSetSection("home");
-            onSelectFolder(null);
-            onCloseMobileNav();
+            setSection("home");
+            setCurrentFolderId(null);
+            setMobileNavOpen(false);
           }}
           className={cn(
             "flex cursor-pointer items-center gap-2.5 rounded-full px-3 py-2 text-[13px] font-medium transition-colors",
@@ -174,34 +139,15 @@ export function DashboardSidebar({
           <span>Home</span>
         </button>
 
-        <SidebarFolderTree
-          section={section}
-          activeFolderId={activeFolderId}
-          documentCount={documentCount}
-          folderTreeRows={folderTreeRows}
-          folderCounts={folderCounts}
-          driveTreeExpanded={driveTreeExpanded}
-          onToggleDriveTree={onToggleDriveTree}
-          onSelectRoot={() => {
-            onSetSection("drive");
-            onSelectFolder(null);
-            onCloseMobileNav();
-          }}
-          onSelectFolder={(id) => {
-            onSetSection("drive");
-            onSelectFolder(id);
-            onCloseMobileNav();
-          }}
-          onOpenContextMenu={onOpenContextMenu}
-        />
+        <SidebarFolderTree />
 
         <Separator className="my-2.5 bg-[#1a1b1e]" />
 
         <button
           type="button"
           onClick={() => {
-            onSetSection("shared");
-            onCloseMobileNav();
+            setSection("shared");
+            setMobileNavOpen(false);
           }}
           className={cn(
             "flex cursor-pointer items-center justify-between rounded-full px-3 py-2 text-[13px] font-medium transition-colors",
@@ -229,8 +175,8 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={() => {
-            onSetSection("recent");
-            onCloseMobileNav();
+            setSection("recent");
+            setMobileNavOpen(false);
           }}
           className={cn(
             "flex cursor-pointer items-center gap-2.5 rounded-full px-3 py-2 text-[13px] font-medium transition-colors",
@@ -253,8 +199,8 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={() => {
-            onSetSection("storage");
-            onCloseMobileNav();
+            setSection("storage");
+            setMobileNavOpen(false);
           }}
           className={cn(
             "flex cursor-pointer items-center gap-2.5 rounded-full px-3 py-2 text-[13px] font-medium transition-colors",
@@ -272,16 +218,7 @@ export function DashboardSidebar({
           <span>Storage</span>
         </button>
 
-        <SidebarStorageWidget
-          usedBytes={usedBytes}
-          quotaBytes={quotaBytes}
-          usedPct={usedPct}
-          progressBarColor={progressBarColor}
-          onManageStorage={() => {
-            onSetSection("storage");
-            onCloseMobileNav();
-          }}
-        />
+        <SidebarStorageWidget />
       </nav>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -25,55 +26,32 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { DocumentSummary, PageInfo } from "@/types";
-import type { DocMeta } from "./types";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { useEditor } from "./EditorContext";
 
-interface EditorDocMenuProps {
-  doc: DocumentSummary | null;
-  docLoading: boolean;
-  workspaceLoading: boolean;
-  savedDocsCount: number;
-  currentPage: PageInfo | null;
-  docMeta: DocMeta;
-  isImageDoc: boolean;
-  saveStatus: "idle" | "saving" | "saved";
-  docMenuOpen: boolean;
-  onDocMenuOpenChange: (open: boolean) => void;
-  onOpenDashboard: () => void;
-  onPersist: () => void;
-  onReloadDoc: () => void;
-  onOpenSavedDocs: () => void;
-  onChooseFile: () => void;
-  onExportAltFormat: () => void;
-  onOpenShortcuts: () => void;
-}
+export function EditorDocMenu() {
+  const { workspaceLoading, savedDocs, refreshWorkspace, setShortcutsOpen } =
+    useWorkspace();
+  const { session, setDocsOpen, openDashboard, chooseFile } = useEditor();
 
-export function EditorDocMenu({
-  doc,
-  docLoading,
-  workspaceLoading,
-  savedDocsCount,
-  currentPage,
-  docMeta,
-  isImageDoc,
-  saveStatus,
-  docMenuOpen,
-  onDocMenuOpenChange,
-  onOpenDashboard,
-  onPersist,
-  onReloadDoc,
-  onOpenSavedDocs,
-  onChooseFile,
-  onExportAltFormat,
-  onOpenShortcuts,
-}: EditorDocMenuProps) {
+  // Colocated menu popover state owned strictly by EditorDocMenu.
+  const [docMenuOpen, setDocMenuOpen] = useState(false);
+
+  const { doc, docLoading, currentPage, docMeta, isImageDoc, saveStatus } =
+    session;
+
+  const openSavedDocs = () => {
+    void refreshWorkspace();
+    setDocsOpen(true);
+  };
+
   return (
     <div className="flex min-w-0 items-center gap-2">
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
-            onClick={onOpenDashboard}
+            onClick={openDashboard}
             className="flex shrink-0 cursor-pointer items-center gap-2 rounded-md transition-opacity hover:opacity-85"
           >
             <BrandLogo size={26} />
@@ -93,25 +71,25 @@ export function EditorDocMenu({
         workspaceLoading ? (
           <Skeleton className="h-7 w-24 rounded-md" />
         ) : (
-          savedDocsCount > 0 && (
+          savedDocs.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               aria-label="Saved documents"
               className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={onOpenSavedDocs}
+              onClick={openSavedDocs}
             >
               <FolderOpen className="h-3.5 w-3.5" />
               <span>My Docs</span>
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
-                {savedDocsCount}
+                {savedDocs.length}
               </Badge>
             </Button>
           )
         )
       ) : (
         <>
-          <Popover open={docMenuOpen} onOpenChange={onDocMenuOpenChange}>
+          <Popover open={docMenuOpen} onOpenChange={setDocMenuOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
@@ -158,8 +136,8 @@ export function EditorDocMenu({
                   size="sm"
                   className="h-8 justify-between px-2 text-xs font-normal"
                   onClick={() => {
-                    onDocMenuOpenChange(false);
-                    onPersist();
+                    setDocMenuOpen(false);
+                    void session.persistCurrentState();
                   }}
                 >
                   <span className="flex items-center gap-2">
@@ -175,8 +153,11 @@ export function EditorDocMenu({
                     size="sm"
                     className="h-8 justify-start gap-2 px-2 text-xs font-normal"
                     onClick={() => {
-                      onDocMenuOpenChange(false);
-                      onReloadDoc();
+                      setDocMenuOpen(false);
+                      void session.loadSavedDocument(
+                        doc.doc_id,
+                        session.activeShareToken,
+                      );
                     }}
                   >
                     <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
@@ -189,8 +170,8 @@ export function EditorDocMenu({
                   size="sm"
                   className="h-8 justify-between px-2 text-xs font-normal"
                   onClick={() => {
-                    onDocMenuOpenChange(false);
-                    onOpenSavedDocs();
+                    setDocMenuOpen(false);
+                    openSavedDocs();
                   }}
                 >
                   <span className="flex items-center gap-2">
@@ -198,7 +179,7 @@ export function EditorDocMenu({
                     Saved documents
                   </span>
                   <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
-                    {savedDocsCount}
+                    {savedDocs.length}
                   </Badge>
                 </Button>
 
@@ -207,8 +188,8 @@ export function EditorDocMenu({
                   size="sm"
                   className="h-8 justify-start gap-2 px-2 text-xs font-normal"
                   onClick={() => {
-                    onDocMenuOpenChange(false);
-                    onChooseFile();
+                    setDocMenuOpen(false);
+                    chooseFile(null);
                   }}
                 >
                   <Upload className="h-3.5 w-3.5 text-muted-foreground" />
@@ -220,8 +201,8 @@ export function EditorDocMenu({
                   size="sm"
                   className="h-8 justify-start gap-2 px-2 text-xs font-normal"
                   onClick={() => {
-                    onDocMenuOpenChange(false);
-                    onExportAltFormat();
+                    setDocMenuOpen(false);
+                    void session.handleExport(isImageDoc ? "pdf" : "png");
                   }}
                 >
                   <Download className="h-3.5 w-3.5 text-muted-foreground" />
@@ -235,8 +216,8 @@ export function EditorDocMenu({
                   size="sm"
                   className="h-8 justify-between px-2 text-xs font-normal"
                   onClick={() => {
-                    onDocMenuOpenChange(false);
-                    onOpenShortcuts();
+                    setDocMenuOpen(false);
+                    setShortcutsOpen(true);
                   }}
                 >
                   <span className="flex items-center gap-2">
@@ -253,7 +234,7 @@ export function EditorDocMenu({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={onPersist}
+                onClick={() => void session.persistCurrentState()}
                 className="hidden cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
               >
                 {saveStatus === "saving" ? (

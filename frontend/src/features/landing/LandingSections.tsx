@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
+import { useEditor } from "@/features/editor/EditorContext";
+import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/validation";
-import type { UploadLimits } from "@/types";
 import { SHOWCASE_ROWS, STEPS } from "./FeatureVisuals";
 import {
   Eyebrow,
@@ -12,18 +13,13 @@ import {
   SectionHeader,
 } from "./primitives";
 
-interface LandingSectionsProps {
-  uploadLimits: UploadLimits;
-  uploadDisabled: boolean;
-  onChooseFile: () => void;
-}
-
-export function LandingSections({
-  uploadLimits,
-  uploadDisabled,
-  onChooseFile,
-}: LandingSectionsProps) {
+export function LandingSections() {
+  const { uploadLimits, captchaRequired } = useWorkspace();
+  const { upload, chooseFile } = useEditor();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const uploadDisabled = captchaRequired && !upload.uploadCaptchaToken;
+  const handleChoose = () => chooseFile(null, true);
 
   const faqRows: [string, string][] = [
     [
@@ -105,7 +101,7 @@ export function LandingSections({
               what you want to change, and move on with your day.
             </p>
             <div className="pt-2">
-              <SecondaryButton onClick={onChooseFile} disabled={uploadDisabled}>
+              <SecondaryButton onClick={handleChoose} disabled={uploadDisabled}>
                 Try with a file
               </SecondaryButton>
             </div>
@@ -185,7 +181,7 @@ export function LandingSections({
             Your file is ready when you are.
           </h2>
           <div className="relative z-10 mt-8 flex flex-col items-center gap-3">
-            <PrimaryCtaButton onClick={onChooseFile} disabled={uploadDisabled}>
+            <PrimaryCtaButton onClick={handleChoose} disabled={uploadDisabled}>
               Choose a file
             </PrimaryCtaButton>
             <span className="text-sm text-[#8a8f98]">
