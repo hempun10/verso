@@ -34,3 +34,8 @@ backend/**/__pycache__/
 *.sqlite
 *.sqlite3
 *.db
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
