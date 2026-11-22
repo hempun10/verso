@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: verso-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: EDITPDF_ENV
+        value: production
+      - key: EDITPDF_ENABLE_DEV_AUTH
+        value: "false"
+      - key: EDITPDF_ALLOWED_ORIGINS
+        value: https://tryverso.pages.dev
+      - key: EDITPDF_TRUST_PROXY_HEADERS
+        value: "true"
+      - key: EDITPDF_COOKIE_SECURE
+        value: "true"
+      - key: EDITPDF_COOKIE_SAMESITE
+        value: none
+      - key: EDITPDF_AUTH_SECRET
+        generateValue: true
+      - key: EDITPDF_OCR_CONCURRENCY
+        value: "1"
+      - key: EDITPDF_MAX_CACHED_DOCS
+        value: "8"
+      - key: EDITPDF_MAX_DISK_CACHE_BYTES
+        value: "100000000"

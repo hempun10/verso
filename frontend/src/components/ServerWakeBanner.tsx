@@ -20,7 +20,7 @@ export function ServerWakeBanner() {
       className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-brand/40 bg-popover px-4 py-2 text-xs font-medium text-foreground shadow-floating"
     >
       <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
-      <span>Starting document server… usually ready in a few seconds</span>
+      <span>Waking up document server… usually ready in 15–45 seconds</span>
     </div>
   );
 }

@@ -1,12 +1,6 @@
 name: Deploy Backend (Hugging Face Spaces)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - "deploy/huggingface/**"
-      - ".github/workflows/deploy-backend.yml"
   workflow_dispatch:
 
 jobs:

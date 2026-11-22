@@ -6,9 +6,9 @@ import {
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
 
-// Transient HTTP statuses commonly returned while a sleeping Docker Space boots.
+// Transient HTTP statuses commonly returned while a sleeping container boots (up to ~65s).
 const COLD_START_STATUSES = new Set([502, 503, 504]);
-const COLD_START_BACKOFF_MS = [1500, 3000, 5000, 5000];
+const COLD_START_BACKOFF_MS = [2000, 3000, 5000, 5000, 8000, 10000, 10000, 10000, 10000];
 
 type WakeListener = (waking: boolean) => void;
 const wakeListeners = new Set<WakeListener>();
