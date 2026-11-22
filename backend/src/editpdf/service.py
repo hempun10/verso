@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import os
 import secrets
 import threading
 import time
@@ -55,6 +56,13 @@ OVERLAY_LIST_ADAPTER: TypeAdapter[list[PageOverlay]] = TypeAdapter(list[PageOver
 EDIT_LIST_ADAPTER: TypeAdapter[list[TextEdit]] = TypeAdapter(list[TextEdit])
 
 
+def _resolve_sessions_dir(root_dir: Path | None) -> Path:
+    if root_dir is not None:
+        return root_dir
+    env_dir = os.getenv("EDITPDF_SESSIONS_DIR", "").strip()
+    return Path(env_dir) if env_dir else DEFAULT_SESSIONS_DIR
+
+
 @dataclass
 class DocumentCacheEntry:
     pdf_path: Path
@@ -75,7 +83,7 @@ class SessionStore:
         repository: WorkspaceRepository | None = None,
         settings: Settings | None = None,
     ):
-        self.root_dir = root_dir or DEFAULT_SESSIONS_DIR
+        self.root_dir = _resolve_sessions_dir(root_dir)
         self.cache_dir = self.root_dir / "pdf_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.settings = settings or load_settings()
