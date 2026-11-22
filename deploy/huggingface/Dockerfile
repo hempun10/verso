@@ -17,11 +17,11 @@ WORKDIR /app/backend
 # Install uv and Python dependencies as root, then hand ownership to uid 1000
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY backend/pyproject.toml backend/uv.lock ./
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY backend/src ./src
 COPY backend/scripts ./scripts
-RUN mkdir -p /app/backend/data /tmp/.cache && chown -R 1000:1000 /app /tmp/.cache
+RUN uv sync --frozen --no-dev && mkdir -p /app/backend/data /tmp/.cache && chown -R 1000:1000 /app /tmp/.cache
 
 USER user
 

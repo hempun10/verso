@@ -22,10 +22,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv and Python dependencies
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY backend/pyproject.toml backend/uv.lock ./
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY backend/src ./src
 COPY backend/scripts ./scripts
+RUN uv sync --frozen --no-dev
 COPY --from=frontend-builder /app/frontend/dist /app/static
 
 ENV EDITPDF_STATIC_DIR=/app/static

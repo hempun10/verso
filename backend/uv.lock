@@ -62,11 +62,12 @@ wheels = [
 
 [[package]]
 name = "editpdf-backend"
-version = "0.1.0"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "fonttools" },
+    { name = "httpx" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
     { name = "pillow" },
@@ -89,6 +90,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "fonttools", specifier = ">=4.55.0" },
+    { name = "httpx", specifier = ">=0.28.0" },
     { name = "numpy", specifier = ">=2.1.0" },
     { name = "opencv-python-headless", specifier = ">=4.11.0" },
     { name = "pillow", specifier = ">=11.0.0" },

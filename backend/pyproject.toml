@@ -9,7 +9,6 @@ packages = ["src/editpdf"]
 name = "editpdf-backend"
 version = "0.4.0"
 description = "verso — Edit text in native PDFs, scans, and images with signatures, stamps, and Drive-style folders"
-readme = "../README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12,<3.14"
 dependencies = [
