@@ -220,3 +220,32 @@ def test_lru_cache_bounds_memory_entries(tmp_path: Path) -> None:
         assert res.status_code == 200
 
     assert len(store._cache) <= 2
+
+
+def test_cross_site_cookie_samesite_none_requires_secure(tmp_path: Path) -> None:
+    bad_cookie = _local_settings(
+        environment="production",
+        dev_login_enabled=False,
+        auth_secret="super-strong-production-secret-key-2026",
+        allowed_origins=("https://verso.pages.dev",),
+        cookie_samesite="none",
+        cookie_secure=False,
+    )
+    with pytest.raises(RuntimeError, match="EDITPDF_COOKIE_SECURE"):
+        create_app(store=SessionStore(root_dir=tmp_path / "bad", settings=bad_cookie))
+
+    good_cookie = _local_settings(
+        environment="production",
+        dev_login_enabled=False,
+        auth_secret="super-strong-production-secret-key-2026",
+        allowed_origins=("https://verso.pages.dev",),
+        cookie_samesite="none",
+        cookie_secure=True,
+    )
+    app = create_app(store=SessionStore(root_dir=tmp_path / "ok", settings=good_cookie))
+    client = TestClient(app)
+    res = client.get("/api/auth/me")
+    assert res.status_code == 200
+    set_cookie = res.headers.get("set-cookie", "").lower()
+    assert "samesite=none" in set_cookie
+    assert "secure" in set_cookie

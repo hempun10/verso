@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { ServerWakeBanner } from "@/components/ServerWakeBanner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { EditorModals } from "@/features/editor/EditorModals";
 import { EditorProvider } from "@/features/editor/EditorContext";
+import { EditorModals } from "@/features/editor/EditorModals";
 import { WorkspaceProvider } from "@/features/workspace/WorkspaceContext";
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -11,6 +12,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <EditorProvider>
           {children}
           <EditorModals />
+          <ServerWakeBanner />
         </EditorProvider>
       </WorkspaceProvider>
     </TooltipProvider>

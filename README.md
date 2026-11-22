@@ -52,9 +52,10 @@ Open **http://127.0.0.1:3003** in your browser.
 
 ---
 
-## Self-Hosting with Docker
+## Self-Hosting & Free Cloud Deployment
 
-Build and run both frontend and backend in a single container:
+- **Free Cloud Split Deploy (Cloudflare Pages + Hugging Face Spaces + Appwrite)**: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step $0 setup (`deploy/huggingface/Dockerfile` + `frontend/public/_redirects`).
+- **Single-Container Docker**: Build and run both frontend and backend together:
 
 ```bash
 docker compose up --build

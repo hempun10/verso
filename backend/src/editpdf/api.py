@@ -119,7 +119,7 @@ def create_app(
                 value=new_guest_cookie,
                 max_age=GUEST_COOKIE_MAX_AGE_SECONDS,
                 httponly=True,
-                samesite="lax",
+                samesite=settings.cookie_samesite,
                 secure=settings.cookie_secure,
                 path="/",
             )

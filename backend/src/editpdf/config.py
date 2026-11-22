@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
@@ -64,6 +65,19 @@ def _env_origins(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
     return origins or default
 
 
+def _env_samesite(
+    name: str, default: Literal["lax", "strict", "none"]
+) -> Literal["lax", "strict", "none"]:
+    raw = os.getenv(name, "").strip().lower()
+    if raw == "lax":
+        return "lax"
+    if raw == "strict":
+        return "strict"
+    if raw == "none":
+        return "none"
+    return default
+
+
 @dataclass(frozen=True)
 class Settings:
     appwrite_endpoint: str
@@ -81,6 +95,7 @@ class Settings:
     allowed_origins: tuple[str, ...] = DEFAULT_ALLOWED_ORIGINS
     trust_proxy_headers: bool = False
     cookie_secure: bool = False
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     # Upload & Appwrite-aligned validation limits
     max_pdf_bytes: int = 25_000_000
     max_pdf_pages: int = 50
@@ -130,6 +145,10 @@ class Settings:
             raise RuntimeError(
                 "EDITPDF_ALLOWED_ORIGINS cannot contain '*' when credentials are enabled."
             )
+        if self.cookie_samesite == "none" and not self.cookie_secure:
+            raise RuntimeError(
+                "EDITPDF_COOKIE_SECURE must be true when EDITPDF_COOKIE_SAMESITE=none."
+            )
 
 
 def load_settings() -> Settings:
@@ -149,6 +168,7 @@ def load_settings() -> Settings:
     rate_limit_enabled = _env_bool("EDITPDF_RATE_LIMIT_ENABLED", True)
     trust_proxy_headers = _env_bool("EDITPDF_TRUST_PROXY_HEADERS", is_prod)
     cookie_secure = _env_bool("EDITPDF_COOKIE_SECURE", is_prod)
+    cookie_samesite = _env_samesite("EDITPDF_COOKIE_SAMESITE", "lax")
 
     return Settings(
         appwrite_endpoint=endpoint,
@@ -171,6 +191,7 @@ def load_settings() -> Settings:
         allowed_origins=_env_origins("EDITPDF_ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS),
         trust_proxy_headers=trust_proxy_headers,
         cookie_secure=cookie_secure,
+        cookie_samesite=cookie_samesite,
         max_pdf_bytes=_env_int(
             "EDITPDF_MAX_PDF_BYTES",
             25_000_000,
