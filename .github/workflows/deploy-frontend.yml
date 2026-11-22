@@ -53,4 +53,5 @@ jobs:
 
       - name: Skip deploy notice
         if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
-        run: echo "Skipping Cloudflare Pages deploy: set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable auto-deploy."
+        run: |
+          echo "Skipping Cloudflare Pages deploy - set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable auto-deploy."
