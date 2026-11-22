@@ -33,19 +33,19 @@ export function DashboardHeader() {
   } = useDashboard();
 
   return (
-    <header className="flex h-[56px] shrink-0 items-center justify-between gap-3 border-b border-[#1f2023] px-4 sm:px-5">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-4 sm:px-5">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
           type="button"
           aria-label="Open menu"
           onClick={() => setMobileNavOpen(true)}
-          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#1f2023] text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8] md:hidden"
+          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border text-subtle-foreground hover:bg-accent hover:text-foreground md:hidden"
         >
           <Menu className="h-4 w-4" />
         </button>
 
         <div className="relative w-full max-w-xl">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-3.5 w-3.5 -translate-y-1/2 text-[#62666d]" />
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-3.5 w-3.5 -translate-y-1/2 text-dim-foreground" />
           <input
             ref={searchInputRef}
             type="text"
@@ -53,19 +53,19 @@ export function DashboardHeader() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search in Drive"
             aria-label="Search in Drive"
-            className="h-9 w-full rounded-full border border-[#1f2023] bg-[#141516] pr-14 pl-9 text-[13px] text-[#f7f8f8] placeholder:text-[#62666d] transition-colors focus:border-[#7170ff]/70 focus:bg-[#18191d] focus:outline-none"
+            className="h-9 w-full rounded-full border border-border bg-secondary pr-14 pl-9 text-body-sm text-foreground placeholder:text-dim-foreground transition-colors focus:border-brand/70 focus:bg-surface-hover focus:outline-none"
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
               aria-label="Clear search"
-              className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-[#62666d] hover:text-[#f7f8f8]"
+              className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-dim-foreground hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           ) : (
-            <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-[#2a2b2f] bg-[#0f1011] px-1.5 py-0.5 font-mono text-[10px] text-[#62666d] sm:inline-block">
+            <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-input bg-card px-1.5 py-0.5 font-mono text-2xs text-dim-foreground sm:inline-block">
               ⌘K
             </kbd>
           )}
@@ -74,7 +74,7 @@ export function DashboardHeader() {
 
       <div className="flex shrink-0 items-center gap-2">
         <div
-          className="hidden items-center rounded-lg border border-[#1f2023] bg-[#141516] p-0.5 sm:flex"
+          className="hidden items-center rounded-lg border border-border bg-secondary p-0.5 sm:flex"
           role="group"
           aria-label="Layout view"
         >
@@ -86,8 +86,8 @@ export function DashboardHeader() {
             className={cn(
               "cursor-pointer rounded-md p-1.5 transition-colors",
               viewMode === "grid"
-                ? "bg-[#232428] text-[#f7f8f8]"
-                : "text-[#62666d] hover:text-[#a1a1aa]",
+                ? "bg-surface-active text-foreground"
+                : "text-dim-foreground hover:text-subtle-foreground",
             )}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
@@ -100,8 +100,8 @@ export function DashboardHeader() {
             className={cn(
               "cursor-pointer rounded-md p-1.5 transition-colors",
               viewMode === "list"
-                ? "bg-[#232428] text-[#f7f8f8]"
-                : "text-[#62666d] hover:text-[#a1a1aa]",
+                ? "bg-surface-active text-foreground"
+                : "text-dim-foreground hover:text-subtle-foreground",
             )}
           >
             <List className="h-3.5 w-3.5" />
@@ -113,7 +113,7 @@ export function DashboardHeader() {
           onClick={() => setShortcutsOpen(true)}
           aria-label="Keyboard shortcuts"
           title="Keyboard shortcuts"
-          className="hidden h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#8a8f98] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8] sm:inline-flex"
+          className="hidden h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex"
         >
           <Keyboard className="h-4 w-4" />
         </button>
@@ -121,7 +121,7 @@ export function DashboardHeader() {
         {authLoading ? (
           <div
             data-auth-skeleton="true"
-            className="h-8 w-20 animate-pulse rounded-full bg-[#1c1d1f]"
+            className="h-8 w-20 animate-pulse rounded-full bg-accent"
           />
         ) : isSignedIn && user ? (
           <Popover>
@@ -129,34 +129,34 @@ export function DashboardHeader() {
               <button
                 type="button"
                 aria-label="Account menu"
-                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[#2a2b2f] bg-[#141516] pr-2.5 pl-1 text-xs font-medium text-[#f7f8f8] transition-colors hover:bg-[#1c1d1f]"
+                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-input bg-secondary pr-2.5 pl-1 text-xs font-medium text-foreground transition-colors hover:bg-accent"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-[#08090a]">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-label font-semibold text-background">
                   {(user.name || user.email).slice(0, 1).toUpperCase()}
                 </span>
-                <span className="hidden max-w-[90px] truncate sm:inline">
+                <span className="hidden max-w-22.5 truncate sm:inline">
                   {user.name}
                 </span>
               </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              className="w-56 border-[#2a2b2f] bg-[#141516] p-3 text-[#f7f8f8]"
+              className="w-56 border-input bg-secondary p-3 text-foreground"
             >
               <div className="space-y-0.5">
-                <div className="text-xs font-semibold text-[#f7f8f8]">
+                <div className="text-xs font-semibold text-foreground">
                   {user.name}
                 </div>
-                <div className="truncate text-[11px] text-[#8a8f98]">
+                <div className="truncate text-label text-muted-foreground">
                   {user.email}
                 </div>
               </div>
-              <Separator className="my-2.5 bg-[#1f2023]" />
+              <Separator className="my-2.5 bg-border" />
               <div className="flex flex-col gap-1">
                 <button
                   type="button"
                   onClick={() => setAuthOpen(true)}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-subtle-foreground hover:bg-accent hover:text-foreground"
                 >
                   <UserIcon className="h-3.5 w-3.5" />
                   Switch account
@@ -164,7 +164,7 @@ export function DashboardHeader() {
                 <button
                   type="button"
                   onClick={() => void signOut()}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   Sign out
@@ -176,7 +176,7 @@ export function DashboardHeader() {
           <button
             type="button"
             onClick={() => setAuthOpen(true)}
-            className="inline-flex h-8 cursor-pointer items-center rounded-full border border-[#2a2b2f] bg-[#1c1d1f] px-3.5 text-xs font-semibold text-[#f7f8f8] transition-colors hover:bg-[#25262b]"
+            className="inline-flex h-8 cursor-pointer items-center rounded-full border border-input bg-accent px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-active"
           >
             Sign in
           </button>

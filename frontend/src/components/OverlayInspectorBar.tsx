@@ -35,10 +35,10 @@ export function OverlayInspectorBar() {
   if (overlay.kind === "image" && isCropping) {
     return (
       <div
-        className="inspector-bar fixed top-[66px] left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-[0_14px_40px_-10px_rgba(0,0,0,0.75)]"
+        className="inspector-bar fixed top-16.5 left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-floating"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <Badge variant="default" className="gap-1 px-2 py-0.5 text-[11px]">
+        <Badge variant="default" className="gap-1 px-2 py-0.5 text-label">
           <Crop className="h-3 w-3" />
           Crop image
         </Badge>
@@ -84,12 +84,12 @@ export function OverlayInspectorBar() {
 
   return (
     <div
-      className="inspector-bar fixed top-[66px] left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-[0_14px_40px_-10px_rgba(0,0,0,0.75)]"
+      className="inspector-bar fixed top-16.5 left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-floating"
       onMouseDown={(e) => e.stopPropagation()}
     >
       {overlay.kind === "whiteout" ? (
         <>
-          <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[11px]">
+          <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-label">
             <Square className="h-3 w-3" />
             Whiteout
           </Badge>

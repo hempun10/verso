@@ -183,7 +183,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const quotaBytes = workspace.storageUsage?.quota_bytes ?? 2_000_000_000;
   const usedPct = Math.min(100, quotaBytes > 0 ? (usedBytes / quotaBytes) * 100 : 0);
   const progressBarColor =
-    usedPct >= 95 ? "bg-[#e0705f]" : usedPct >= 80 ? "bg-[#f2b53d]" : "bg-[#7170ff]";
+    usedPct >= 95 ? "bg-destructive" : usedPct >= 80 ? "bg-warning" : "bg-brand";
 
   const submitNewFolder = async () => {
     const trimmed = newFolderName.trim();

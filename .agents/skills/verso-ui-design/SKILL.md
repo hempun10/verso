@@ -10,23 +10,35 @@ description: >-
 
 Follow these exact tokens and patterns so every page, toolbar, and modal feels cohesive.
 
-## 1. Color Palette (Dark-First Surface Hierarchy)
+## 1. Semantic Tailwind v4 Design Tokens (`frontend/src/styles.css`)
 
-| Role | Token / Hex | Usage |
-| :--- | :--- | :--- |
-| App Canvas / Page BG | `#08090a` / `bg-background` | Outer shell, landing page, editor backdrop |
-| Elevated Panel | `#0f1011` / `bg-card` | Dashboard inset panel, cards, topbar |
-| Interactive Surface | `#141516` / `bg-secondary` | Inputs, folder cards, menus, dropzones |
-| Hover / Active Surface | `#1c1d1f` / `#232428` | Menu hover, active pill, segmented toggles |
-| Subtle Border | `#1f2023` / `border-border` | Panel dividers, card outlines |
-| Strong Border | `#2a2b2f` / `border-input` | Dialogs, popovers, dashed dropzones |
-| Primary Text | `#f7f8f8` / `text-foreground` | Headings, active labels |
-| Secondary Text | `#a1a1aa` / `#8a8f98` | Descriptions, metadata, icons |
-| Muted Text | `#62666d` | Hints, keyboard badges, timestamps |
-| Primary Accent | `#7170ff` | Active nav pill, focus rings, drop highlights, spinners |
-| Success | `#3ecf8e` | Saved indicator, completed upload, copied state |
-| Destructive | `#e0705f` | Delete actions, error banners |
-| Primary CTA Button | `bg-white text-[#08090a] hover:bg-[#f4f4f6]` | High-contrast white pill/button on dark surfaces |
+**Never hardcode arbitrary hex colors (`bg-[#...]`, `text-[#...]`, `border-[#...]`), arbitrary pixel font sizes (`text-[11px]`, `text-[13px]`), or arbitrary shadows in components.** Always use the semantic Tailwind v4 tokens defined in `@theme inline` inside `frontend/src/styles.css`:
+
+| Role | Semantic Class | Underlying Token | Usage |
+| :--- | :--- | :--- | :--- |
+| App Canvas / Page BG | `bg-background` / `text-background` | `#08090a` | Outer shell, landing page, primary CTA text |
+| Dashboard Outer Shell | `bg-shell` | `#0a0a0b` | Dashboard left sidebar backdrop |
+| Preview Tile / Grid BG | `bg-canvas-tile` | `#0b0c0e` | Editor studio grid, file preview tiles |
+| Elevated Panel | `bg-card` | `#0f1011` | Dashboard inset panel, cards, topbar |
+| Interactive Surface | `bg-secondary` / `bg-popover` | `#141516` | Inputs, folder cards, menus, dropzones |
+| Subtle Hover | `hover:bg-surface-hover` | `#1a1b1f` | Card & row hover backgrounds |
+| Active / Hover Surface | `bg-accent` / `bg-surface-active` | `#1c1d1f` / `#232428` | Menu hover, active pill, segmented toggles |
+| Subtle / Strong Border | `border-border` / `border-input` | `#1f2023` / `#2a2b2f` | Panel dividers, dialogs, dashed dropzones |
+| Hover Border | `hover:border-border-hover` | `#3f4149` | Dropzone hover outline |
+| Primary Text | `text-foreground` | `#f7f8f8` | Headings, active labels |
+| Strong / Subtle Text | `text-strong-foreground` / `text-subtle-foreground` | `#d4d4d8` / `#a1a1aa` | Body copy, menu items, icons |
+| Muted / Dim Text | `text-muted-foreground` / `text-dim-foreground` | `#8a8f98` / `#62666d` | Metadata, hints, keyboard badges, timestamps |
+| Primary Accent | `bg-brand` / `text-brand` / `border-brand` / `accent-brand` | `#7170ff` | Active nav pill, focus rings, drop highlights, spinners |
+| Soft Accent | `text-brand-soft` | `#9a99ff` | Subtle accent links & highlights |
+| Success / Warning | `text-success` / `bg-success` / `bg-warning` | `#3ecf8e` / `#f2b53d` | Saved indicator, completed upload, storage warning |
+| Destructive / Danger | `text-destructive` / `bg-destructive` / `text-danger-text` | `#e0705f` / `#f7d8d2` | Delete actions, error banners |
+| Paper Preview / CTA | `bg-paper` / `hover:bg-cta-hover` / `active:bg-cta-active` | `#f8f7f3` / `#f4f4f6` / `#e8e8ec` | Stamp paper backdrop, high-contrast white CTA buttons |
+
+### Typography, Shadows & Patterns
+- **Type scale**: Use canonical classes (`text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`) and `@theme` UI tokens (`text-3xs`, `text-2xs`, `text-label`, `text-body-sm`, `text-body-md`, `text-title-md`, `text-hero`).
+- **Shadows**: Use `shadow-floating`, `shadow-menu`, `shadow-canvas`, `shadow-dialog`, `shadow-cta`, `shadow-cta-lg`, `shadow-raised`, `shadow-inset-badge`.
+- **Patterns**: Use `.bg-checkerboard`, `.bg-landing-stripes`, `.bg-landing-dots`, `.bg-hero-glow`, `.bg-cta-glow` from `styles.css`.
+- **Spacing**: Use Tailwind v4's canonical spacing scale (`h-14`, `w-62`, `top-16.5`, `max-w-45`, `min-w-11`, `z-15`) instead of pixel brackets (`h-[56px]`, `top-[66px]`).
 
 ## 2. Typography & Spacing
 

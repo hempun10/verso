@@ -66,7 +66,7 @@ export function InspectorBar() {
   return (
     <div
       ref={actions.inspectorRef}
-      className="inspector-bar fixed top-[66px] left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-[0_14px_40px_-10px_rgba(0,0,0,0.75)]"
+      className="inspector-bar fixed top-16.5 left-1/2 z-30 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-popover px-2.5 py-1.5 shadow-floating"
       onMouseDownCapture={(e) => {
         actions.markInspectorPointerDown();
         const target = e.target as HTMLElement;
@@ -83,7 +83,7 @@ export function InspectorBar() {
     >
       <div className="flex items-center gap-1.5 pr-0.5">
         <span
-          className="max-w-[140px] truncate text-xs font-medium text-foreground"
+          className="max-w-35 truncate text-xs font-medium text-foreground"
           title={selectedBlock.style.original_font_name}
         >
           {selectedBlock.kind === "native"
@@ -95,14 +95,14 @@ export function InspectorBar() {
         {selectedCharCount > 0 ? (
           <Badge
             variant="default"
-            className="px-1.5 py-0 text-[10px] font-medium tabular-nums"
+            className="px-1.5 py-0 text-2xs font-medium tabular-nums"
           >
             {selectedCharCount} selected
           </Badge>
         ) : (
           <Badge
             variant="secondary"
-            className="px-1.5 py-0 text-[10px] font-medium"
+            className="px-1.5 py-0 text-2xs font-medium"
           >
             {formatFontSourceLabel(selectedBlock.style.font_source)}
           </Badge>
@@ -126,7 +126,7 @@ export function InspectorBar() {
                 aria-label="Text color"
                 className="relative h-7 w-7 flex-col gap-0 px-0"
               >
-                <span className="text-[11px] leading-none font-bold text-foreground">
+                <span className="text-label leading-none font-bold text-foreground">
                   A
                 </span>
                 <span

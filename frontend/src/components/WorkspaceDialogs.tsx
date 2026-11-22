@@ -91,7 +91,7 @@ export function DocumentsDialog({
             description="Upload a PDF or image to start a saved session in your workspace."
           />
         ) : (
-          <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
             {documents.map((item) => {
               const isActive = item.doc_id === activeDocId;
               const changeCount = item.edit_count + item.overlay_count;
@@ -118,18 +118,18 @@ export function DocumentsDialog({
                           {item.filename}
                         </span>
                         {isActive && (
-                          <Badge variant="default" className="px-1.5 py-0 text-[10px]">
+                          <Badge variant="default" className="px-1.5 py-0 text-2xs">
                             Open
                           </Badge>
                         )}
                         {item.is_shared && (
-                          <Badge variant="native" className="gap-0.5 px-1.5 py-0 text-[10px]">
+                          <Badge variant="native" className="gap-0.5 px-1.5 py-0 text-2xs">
                             <Users className="h-2.5 w-2.5" />
                             Shared
                           </Badge>
                         )}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      <div className="mt-0.5 text-label text-muted-foreground">
                         {item.page_count} page{item.page_count === 1 ? "" : "s"}{" "}
                         · {changeCount} change{changeCount === 1 ? "" : "s"} ·{" "}
                         {formatRelativeTime(item.updated_at)}
@@ -225,7 +225,7 @@ export function ShareDialog({
             <div className="text-xs font-medium text-foreground">
               Enable shareable edit link
             </div>
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-label text-muted-foreground">
               Turning this off immediately revokes the link
             </div>
           </div>
@@ -242,7 +242,7 @@ export function ShareDialog({
             <Input
               readOnly
               value={shareUrl}
-              className="h-8 font-mono text-[11px]"
+              className="h-8 font-mono text-label"
               onFocus={(e) => e.currentTarget.select()}
             />
             <Button
@@ -253,7 +253,7 @@ export function ShareDialog({
             >
               {copied ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-[#3ecf8e]" />
+                  <Check className="h-3.5 w-3.5 text-success" />
                   Copied
                 </>
               ) : (

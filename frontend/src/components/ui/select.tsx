@@ -36,7 +36,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       data-inspector-portal="true"
       className={cn(
-        "relative z-50 max-h-72 min-w-[9rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg",
+        "relative z-50 max-h-72 min-w-36 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
         className,

@@ -10,7 +10,7 @@ export function LandingPage() {
   const { error, clearError } = useWorkspace();
 
   return (
-    <div className="landing-shell isolate min-h-svh w-full bg-[#08090a] text-[#f7f8f8] antialiased">
+    <div className="landing-shell isolate min-h-svh w-full bg-background text-foreground antialiased">
       <PageFrame>
         <LandingHeader />
 
@@ -20,7 +20,7 @@ export function LandingPage() {
           </div>
         )}
 
-        <main className="flex w-full flex-col items-center justify-center divide-y divide-[#1f2023]">
+        <main className="flex w-full flex-col items-center justify-center divide-y divide-border">
           <LandingHero />
           <LandingSections />
           <LandingFooter />

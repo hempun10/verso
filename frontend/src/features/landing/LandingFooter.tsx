@@ -13,27 +13,27 @@ export function LandingFooter() {
         <div className="flex max-w-xs flex-col items-start gap-4">
           <a
             href="#hero"
-            className="flex items-center gap-2.5 text-lg font-semibold text-[#f7f8f8]"
+            className="flex items-center gap-2.5 text-lg font-semibold text-foreground"
           >
             <BrandLogo size={28} />
             <span>{BRAND_NAME}</span>
           </a>
-          <p className="text-[14px] leading-relaxed text-[#8a8f98]">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Edit text, sign forms, hide private details, and share documents
             right in your browser.
           </p>
-          <p className="text-xs text-[#62666d]">
+          <p className="text-xs text-dim-foreground">
             © {new Date().getFullYear()} {BRAND_NAME}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:pr-6">
           <ul role="list" className="flex flex-col gap-2.5">
-            <li className="text-xs font-semibold text-[#f7f8f8]">Product</li>
+            <li className="text-xs font-semibold text-foreground">Product</li>
             <li>
               <a
                 href="#features"
-                className="text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Features
               </a>
@@ -41,7 +41,7 @@ export function LandingFooter() {
             <li>
               <a
                 href="#how-it-works"
-                className="text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 How it works
               </a>
@@ -49,7 +49,7 @@ export function LandingFooter() {
             <li>
               <a
                 href="#faq"
-                className="text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 FAQ
               </a>
@@ -57,12 +57,12 @@ export function LandingFooter() {
           </ul>
 
           <ul role="list" className="flex flex-col gap-2.5">
-            <li className="text-xs font-semibold text-[#f7f8f8]">Workspace</li>
+            <li className="text-xs font-semibold text-foreground">Workspace</li>
             <li>
               <button
                 type="button"
                 onClick={openDashboard}
-                className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Open dashboard
               </button>
@@ -71,7 +71,7 @@ export function LandingFooter() {
               <button
                 type="button"
                 onClick={() => chooseFile(null, true)}
-                className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Upload file
               </button>
@@ -80,7 +80,7 @@ export function LandingFooter() {
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(true)}
-                className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Shortcuts
               </button>
@@ -88,15 +88,15 @@ export function LandingFooter() {
           </ul>
 
           <ul role="list" className="flex flex-col gap-2.5">
-            <li className="text-xs font-semibold text-[#f7f8f8]">Account</li>
+            <li className="text-xs font-semibold text-foreground">Account</li>
             <li>
               {isSignedIn && user ? (
-                <span className="text-sm text-[#8a8f98]">{user.name}</span>
+                <span className="text-sm text-muted-foreground">{user.name}</span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setAuthOpen(true)}
-                  className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                  className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Sign up
                 </button>
@@ -107,7 +107,7 @@ export function LandingFooter() {
                 <button
                   type="button"
                   onClick={() => void signOut()}
-                  className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                  className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Sign out
                 </button>
@@ -117,7 +117,7 @@ export function LandingFooter() {
               <button
                 type="button"
                 onClick={() => setLegalTab("privacy")}
-                className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Privacy Policy
               </button>
@@ -126,7 +126,7 @@ export function LandingFooter() {
               <button
                 type="button"
                 onClick={() => setLegalTab("terms")}
-                className="cursor-pointer text-left text-sm text-[#8a8f98] transition-colors hover:text-[#f7f8f8]"
+                className="cursor-pointer text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Terms of Service
               </button>
@@ -137,10 +137,10 @@ export function LandingFooter() {
 
       {/* Faded dot-matrix footer band */}
       <div className="relative z-0 mt-8 h-32 w-full md:h-44">
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-transparent from-40% to-[#08090a]" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-transparent from-40% to-background" />
         <div
           aria-hidden="true"
-          className="absolute inset-0 mx-6 bg-[size:14px_14px] text-[#f7f8f8]/10 [background-image:radial-gradient(currentColor_1px,transparent_1px)]"
+          className="absolute inset-0 mx-6 bg-landing-dots text-foreground/10"
         />
       </div>
     </footer>

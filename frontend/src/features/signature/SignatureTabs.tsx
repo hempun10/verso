@@ -100,7 +100,7 @@ export function DrawSignatureTab({
               type="button"
               size="sm"
               variant={strokeWidth === s.width ? "secondary" : "ghost"}
-              className="h-6 px-2 text-[11px]"
+              className="h-6 px-2 text-label"
               onClick={() => onStrokeWidthChange(s.width)}
             >
               {s.label}
@@ -110,7 +110,7 @@ export function DrawSignatureTab({
             type="button"
             size="sm"
             variant="ghost"
-            className="h-6 gap-1 px-2 text-[11px] text-muted-foreground"
+            className="h-6 gap-1 px-2 text-label text-muted-foreground"
             onClick={onClear}
           >
             <Eraser className="h-3 w-3" />
@@ -129,7 +129,7 @@ export function DrawSignatureTab({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
-          className="h-[170px] w-full cursor-crosshair touch-none"
+          className="h-42.5 w-full cursor-crosshair touch-none"
         />
         {!hasStrokes && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-zinc-500">
@@ -189,7 +189,7 @@ export function TypeSignatureTab({
         ))}
       </div>
 
-      <div className="flex h-[130px] items-center justify-center rounded-xl border border-input bg-white px-6">
+      <div className="flex h-32.5 items-center justify-center rounded-xl border border-input bg-white px-6">
         {typedText.trim() ? (
           <span style={{ font: activeTypeFont.css, color: inkColor }}>
             {typedText}
@@ -238,7 +238,7 @@ export function SavedSignaturesTab({
     return (
       <EmptyState
         compact
-        className="h-[170px]"
+        className="h-42.5"
         title="No saved signatures yet"
         description='Draw or type a signature and keep "Save to library" checked to reuse it anytime.'
       />
@@ -246,7 +246,7 @@ export function SavedSignaturesTab({
   }
 
   return (
-    <div className="grid max-h-[240px] grid-cols-2 gap-2.5 overflow-y-auto pr-1">
+    <div className="grid max-h-60 grid-cols-2 gap-2.5 overflow-y-auto pr-1">
       {savedSignatures.map((sig) => {
         const isDeleting = deletingId === sig.asset_id;
         return (
@@ -266,7 +266,7 @@ export function SavedSignaturesTab({
               />
             </button>
             <div className="mt-2 flex w-full items-center justify-between gap-2 border-t border-border pt-1.5">
-              <span className="truncate text-[11px] font-medium text-foreground/90">
+              <span className="truncate text-label font-medium text-foreground/90">
                 {sig.name}
               </span>
               <button

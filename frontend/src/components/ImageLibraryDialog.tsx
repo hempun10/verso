@@ -140,24 +140,24 @@ export function ImageLibraryDialog({
             <div className="text-xs font-medium text-foreground">
               {uploading ? "Uploading image..." : "Upload image"}
             </div>
-            <p className="text-[11px] leading-snug text-muted-foreground">
+            <p className="text-label leading-snug text-muted-foreground">
               Place PNG, JPG, or WebP directly on the page
             </p>
           </button>
 
-          <div className="flex flex-col justify-between gap-2 rounded-xl border border-dashed border-[#7170ff]/45 bg-[#7170ff]/[0.06] px-4 py-5 text-center transition-colors hover:border-[#7170ff]/75 hover:bg-[#7170ff]/[0.1]">
+          <div className="flex flex-col justify-between gap-2 rounded-xl border border-dashed border-brand/45 bg-brand/[0.06] px-4 py-5 text-center transition-colors hover:border-brand/75 hover:bg-brand/[0.1]">
             <button
               type="button"
               onClick={() => stampInputRef.current?.click()}
               className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-2"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#7170ff]/40 bg-[#7170ff]/15 text-[#9a99ff] shadow-xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/40 bg-brand/15 text-brand-soft shadow-xs">
                 <Stamp className="h-4 w-4" />
               </div>
               <div className="text-xs font-medium text-foreground">
                 Open as stamp
               </div>
-              <p className="text-[11px] leading-snug text-muted-foreground">
+              <p className="text-label leading-snug text-muted-foreground">
                 Remove background &amp; convert logo into official seal
               </p>
             </button>
@@ -167,7 +167,7 @@ export function ImageLibraryDialog({
                 onOpenChange(false);
                 onOpenStampStudio();
               }}
-              className="cursor-pointer text-[11px] font-medium text-[#9a99ff] hover:text-foreground hover:underline"
+              className="cursor-pointer text-label font-medium text-brand-soft hover:text-foreground hover:underline"
             >
               Or open Stamp Studio without a logo
             </button>
@@ -198,7 +198,7 @@ export function ImageLibraryDialog({
                 <ImagePlus className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>Saved images &amp; stamps ({savedImages.length})</span>
               </div>
-              <div className="grid max-h-[220px] grid-cols-3 gap-2.5 overflow-y-auto pr-1">
+              <div className="grid max-h-55 grid-cols-3 gap-2.5 overflow-y-auto pr-1">
                 {savedImages.map((img) => {
                   const isDeleting = deletingId === img.asset_id;
                   return (
@@ -222,7 +222,7 @@ export function ImageLibraryDialog({
                       </button>
                       <div className="mt-1.5 flex items-center justify-between gap-1">
                         <span
-                          className="truncate text-[11px] text-foreground/90"
+                          className="truncate text-label text-foreground/90"
                           title={img.name}
                         >
                           {img.name}
@@ -232,7 +232,7 @@ export function ImageLibraryDialog({
                             type="button"
                             title="Open as stamp"
                             aria-label={`Open ${img.name} as stamp`}
-                            className="cursor-pointer rounded p-0.5 text-muted-foreground hover:bg-[#7170ff]/18 hover:text-[#9a99ff]"
+                            className="cursor-pointer rounded p-0.5 text-muted-foreground hover:bg-brand/18 hover:text-brand-soft"
                             onClick={() => {
                               onOpenChange(false);
                               onOpenStampStudio({ asset: img });

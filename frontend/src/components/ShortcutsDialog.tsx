@@ -91,7 +91,7 @@ export function ShortcutsDialog({ open, onOpenChange }: ShortcutsDialogProps) {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {SECTIONS.map((sec) => (
             <div key={sec.title} className="space-y-2">
-              <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <div className="text-label font-semibold tracking-wider text-muted-foreground uppercase">
                 {sec.title}
               </div>
               <div className="space-y-1.5 rounded-xl border bg-muted/30 p-3">

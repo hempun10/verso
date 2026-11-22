@@ -81,7 +81,7 @@ export function EditorDocMenu() {
             >
               <FolderOpen className="h-3.5 w-3.5" />
               <span>My Docs</span>
-              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+              <Badge variant="secondary" className="px-1.5 py-0 text-2xs">
                 {savedDocs.length}
               </Badge>
             </Button>
@@ -97,7 +97,7 @@ export function EditorDocMenu() {
                 className="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-left transition-colors hover:bg-accent"
               >
                 <span
-                  className="max-w-[180px] truncate text-xs font-semibold text-foreground"
+                  className="max-w-45 truncate text-xs font-semibold text-foreground"
                   title={doc.filename}
                 >
                   {doc.filename}
@@ -118,13 +118,13 @@ export function EditorDocMenu() {
                     variant={
                       currentPage.kind === "native" ? "native" : "scanned"
                     }
-                    className="shrink-0 text-[10px] tracking-wider uppercase"
+                    className="shrink-0 text-2xs tracking-wider uppercase"
                   >
                     {currentPage.kind}
                   </Badge>
                 )}
               </div>
-              <div className="px-2 pb-1.5 text-[11px] text-muted-foreground">
+              <div className="px-2 pb-1.5 text-label text-muted-foreground">
                 {doc.page_count} page{doc.page_count === 1 ? "" : "s"} · v
                 {docMeta.version}
                 {docMeta.updatedBy ? ` · ${docMeta.updatedBy}` : ""}
@@ -144,7 +144,7 @@ export function EditorDocMenu() {
                     <Save className="h-3.5 w-3.5 text-muted-foreground" />
                     Save session
                   </span>
-                  <span className="text-[10px] text-muted-foreground">⌘S</span>
+                  <span className="text-2xs text-muted-foreground">⌘S</span>
                 </Button>
 
                 {!docMeta.isOwner && (
@@ -178,7 +178,7 @@ export function EditorDocMenu() {
                     <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
                     Saved documents
                   </span>
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+                  <Badge variant="secondary" className="px-1.5 py-0 text-2xs">
                     {savedDocs.length}
                   </Badge>
                 </Button>
@@ -224,7 +224,7 @@ export function EditorDocMenu() {
                     <Keyboard className="h-3.5 w-3.5 text-muted-foreground" />
                     Keyboard shortcuts
                   </span>
-                  <span className="text-[10px] text-muted-foreground">?</span>
+                  <span className="text-2xs text-muted-foreground">?</span>
                 </Button>
               </div>
             </PopoverContent>
@@ -235,7 +235,7 @@ export function EditorDocMenu() {
               <button
                 type="button"
                 onClick={() => void session.persistCurrentState()}
-                className="hidden cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
+                className="hidden cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-label text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
               >
                 {saveStatus === "saving" ? (
                   <>

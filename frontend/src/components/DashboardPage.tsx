@@ -23,8 +23,8 @@ function DashboardShell() {
   } = useDashboard();
 
   return (
-    <div className="landing-shell flex h-dvh w-full overflow-hidden bg-[#0a0a0b] text-[#f7f8f8] antialiased">
-      <aside className="hidden h-full w-[248px] shrink-0 md:block">
+    <div className="landing-shell flex h-dvh w-full overflow-hidden bg-shell text-foreground antialiased">
+      <aside className="hidden h-full w-62 shrink-0 md:block">
         <DashboardSidebar />
       </aside>
 
@@ -34,14 +34,14 @@ function DashboardShell() {
             className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setMobileNavOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 w-[264px] border-r border-[#1f2023] bg-[#0a0a0b] shadow-2xl">
+          <aside className="absolute inset-y-0 left-0 w-66 border-r border-border bg-shell shadow-2xl">
             <DashboardSidebar />
           </aside>
         </div>
       )}
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col p-2 md:py-2.5 md:pr-2.5 md:pl-0">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#1f2023] bg-[#0f1011]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card">
           <DashboardHeader />
 
           {error && (

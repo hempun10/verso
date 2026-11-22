@@ -97,7 +97,7 @@ export function StampStudioDialog({
         <div className="border-b border-border px-6 py-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Stamp className="h-4 w-4 text-[#7170ff]" />
+              <Stamp className="h-4 w-4 text-brand" />
               Government Stamp Studio
             </DialogTitle>
             <DialogDescription>

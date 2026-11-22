@@ -21,7 +21,7 @@ export function StampExtractControls() {
 
   return (
     <div className="space-y-2.5 rounded-xl border border-border bg-secondary/45 p-3.5">
-      <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+      <div className="text-label font-semibold tracking-wider text-muted-foreground uppercase">
         1. Pixel Capture &amp; Background Removal
       </div>
       <div className="grid grid-cols-3 gap-1.5">
@@ -32,9 +32,9 @@ export function StampExtractControls() {
             title={m.hint}
             onClick={() => setExtractMode(m.id)}
             className={cn(
-              "cursor-pointer rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition-colors",
+              "cursor-pointer rounded-lg border px-2 py-1.5 text-center text-label font-medium transition-colors",
               extractMode === m.id
-                ? "border-[#7170ff]/70 bg-[#7170ff]/18 text-foreground"
+                ? "border-brand/70 bg-brand/18 text-foreground"
                 : "border-border bg-card text-muted-foreground hover:text-foreground",
             )}
           >
@@ -43,7 +43,7 @@ export function StampExtractControls() {
         ))}
       </div>
       <div className="space-y-1">
-        <div className="flex items-center justify-between text-[11px]">
+        <div className="flex items-center justify-between text-label">
           <span className="text-muted-foreground">Ink sensitivity</span>
           <span className="font-mono text-foreground tabular-nums">
             {sensitivity}%
@@ -55,7 +55,7 @@ export function StampExtractControls() {
           max={92}
           value={sensitivity}
           onChange={(e) => setSensitivity(Number(e.target.value))}
-          className="h-1.5 w-full cursor-pointer accent-[#7170ff]"
+          className="h-1.5 w-full cursor-pointer accent-brand"
         />
       </div>
       <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground/90">

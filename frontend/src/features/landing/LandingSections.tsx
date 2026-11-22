@@ -55,26 +55,26 @@ export function LandingSections() {
           <div
             key={row.id}
             className={cn(
-              "grid divide-y divide-[#1f2023] border-b border-[#1f2023] last:border-b-0 md:grid-cols-2 md:divide-x md:divide-y-0",
+              "grid divide-y divide-border border-b border-border last:border-b-0 md:grid-cols-2 md:divide-x md:divide-y-0",
               idx % 2 === 1 &&
                 "md:divide-x-reverse md:[&>*:first-child]:order-2",
             )}
           >
             <div className="flex flex-col justify-center gap-2.5 p-6 md:p-10">
               <Eyebrow>{row.eyebrow}</Eyebrow>
-              <h3 className="text-xl font-medium tracking-tight text-balance text-[#f7f8f8]">
+              <h3 className="text-xl font-medium tracking-tight text-balance text-foreground">
                 {row.title}
               </h3>
-              <p className="max-w-[44ch] text-[14px] leading-relaxed text-pretty text-[#a1a1aa]">
+              <p className="max-w-[44ch] text-sm leading-relaxed text-pretty text-subtle-foreground">
                 {row.sub}
               </p>
               <ul
                 role="list"
-                className="mt-2 flex flex-col gap-2 text-[14px] text-[#a1a1aa]"
+                className="mt-2 flex flex-col gap-2 text-sm text-subtle-foreground"
               >
                 {row.points.map((pt) => (
                   <li key={pt} className="flex items-start gap-2.5">
-                    <Check className="mt-1 h-3.5 w-3.5 shrink-0 stroke-[2.5] text-[#7170ff]" />
+                    <Check className="mt-1 h-3.5 w-3.5 shrink-0 stroke-[2.5] text-brand" />
                     <span>{pt}</span>
                   </li>
                 ))}
@@ -89,13 +89,13 @@ export function LandingSections() {
       </Framed>
 
       <Framed id="how-it-works">
-        <div className="grid divide-y divide-[#1f2023] md:grid-cols-2 md:divide-x md:divide-y-0">
+        <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
           <div className="flex flex-col justify-center gap-4 p-6 md:p-12">
             <Eyebrow>How it works</Eyebrow>
-            <h2 className="text-3xl font-medium tracking-tighter text-balance text-[#f7f8f8] md:text-4xl">
+            <h2 className="text-3xl font-medium tracking-tighter text-balance text-foreground md:text-4xl">
               Documents shouldn’t feel locked in stone.
             </h2>
-            <p className="max-w-[44ch] text-[15px] leading-relaxed text-[#a1a1aa]">
+            <p className="max-w-[44ch] text-body-md leading-relaxed text-subtle-foreground">
               Most editors bury simple fixes under dozens of menus or force you
               to convert your file and ruin the layout. Open your file, click
               what you want to change, and move on with your day.
@@ -107,17 +107,17 @@ export function LandingSections() {
             </div>
           </div>
 
-          <ol className="divide-y divide-[#1f2023]">
+          <ol className="divide-y divide-border">
             {STEPS.map((s) => (
               <li key={s.num} className="flex items-start gap-5 p-6 md:p-8">
-                <span className="pt-0.5 font-mono text-xs font-medium text-[#7170ff] tabular-nums">
+                <span className="pt-0.5 font-mono text-xs font-medium text-brand tabular-nums">
                   {s.num}
                 </span>
                 <div>
-                  <h3 className="text-[15px] font-medium text-[#f7f8f8]">
+                  <h3 className="text-body-md font-medium text-foreground">
                     {s.title}
                   </h3>
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#a1a1aa]">
+                  <p className="mt-1.5 text-sm leading-relaxed text-subtle-foreground">
                     {s.body}
                   </p>
                 </div>
@@ -145,20 +145,20 @@ export function LandingSections() {
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
                   aria-expanded={isOpen}
                   className={cn(
-                    "flex w-full cursor-pointer items-center justify-between gap-6 rounded-xl border border-[#1f2023] bg-[#141516] px-4 py-3.5 text-left text-[15px] font-medium text-[#f7f8f8] transition-colors hover:bg-[#1c1d1f]",
-                    isOpen && "border-[#2a2b2f] bg-[#1c1d1f]",
+                    "flex w-full cursor-pointer items-center justify-between gap-6 rounded-xl border border-border bg-secondary px-4 py-3.5 text-left text-body-md font-medium text-foreground transition-colors hover:bg-accent",
+                    isOpen && "border-input bg-accent",
                   )}
                 >
                   <span>{q}</span>
                   <ChevronDown
                     className={cn(
-                      "h-4 w-4 shrink-0 text-[#8a8f98] transition-transform duration-200",
-                      isOpen && "rotate-180 text-[#f7f8f8]",
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                      isOpen && "rotate-180 text-foreground",
                     )}
                   />
                 </button>
                 {isOpen && (
-                  <div className="rounded-xl border border-[#1f2023] bg-[#0f1011] px-4 py-3.5 text-[14px] leading-relaxed text-[#a1a1aa]">
+                  <div className="rounded-xl border border-border bg-card px-4 py-3.5 text-sm leading-relaxed text-subtle-foreground">
                     {a}
                   </div>
                 )}
@@ -172,19 +172,19 @@ export function LandingSections() {
         id="cta"
         className="flex w-full flex-col items-center justify-center p-4 sm:p-6 md:px-10 md:py-10"
       >
-        <div className="relative z-20 flex h-[360px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#1f2023] bg-[#0f1011] px-6 text-center shadow-xl md:h-[400px]">
+        <div className="relative z-20 flex h-90 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card px-6 text-center shadow-xl md:h-100">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 [background:radial-gradient(60%_80%_at_50%_0%,rgba(113,112,255,0.28),transparent_70%)]"
+            className="pointer-events-none absolute inset-0 bg-cta-glow"
           />
-          <h2 className="relative z-10 max-w-md text-3xl font-medium tracking-tighter text-balance text-[#f7f8f8] sm:text-5xl md:max-w-xl md:text-6xl">
+          <h2 className="relative z-10 max-w-md text-3xl font-medium tracking-tighter text-balance text-foreground sm:text-5xl md:max-w-xl md:text-6xl">
             Your file is ready when you are.
           </h2>
           <div className="relative z-10 mt-8 flex flex-col items-center gap-3">
             <PrimaryCtaButton onClick={handleChoose} disabled={uploadDisabled}>
               Choose a file
             </PrimaryCtaButton>
-            <span className="text-sm text-[#8a8f98]">
+            <span className="text-sm text-muted-foreground">
               Free to try. No download required.
             </span>
           </div>

@@ -56,7 +56,7 @@ export function ColorSwatchPicker({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+            className="h-6 px-1.5 text-label text-muted-foreground hover:text-foreground"
             onMouseDown={(e) => {
               if (preventFocusSteal) e.preventDefault();
             }}
@@ -66,7 +66,7 @@ export function ColorSwatchPicker({
             Clear
           </Button>
         ) : (
-          <span className="font-mono text-[11px] text-muted-foreground uppercase">
+          <span className="font-mono text-label text-muted-foreground uppercase">
             {value ?? ""}
           </span>
         )}

@@ -38,34 +38,34 @@ export function DashboardCanvas() {
     >
       <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
         {section === "home" && !query ? (
-          <h1 className="text-[22px] font-medium tracking-tight text-[#f7f8f8]">
+          <h1 className="text-title-md font-medium tracking-tight text-foreground">
             Welcome to verso
           </h1>
         ) : section === "drive" && !query ? (
-          <div className="flex flex-wrap items-center gap-1 text-[18px] font-medium tracking-tight">
+          <div className="flex flex-wrap items-center gap-1 text-lg font-medium tracking-tight">
             <button
               type="button"
               onClick={() => setCurrentFolderId(null)}
               className={cn(
                 "cursor-pointer rounded-lg px-2 py-0.5 transition-colors",
                 activeFolderId === null
-                  ? "text-[#f7f8f8]"
-                  : "text-[#8a8f98] hover:bg-[#1a1b1f] hover:text-[#f7f8f8]",
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
               )}
             >
               My Drive
             </button>
             {breadcrumbs.map((crumb, idx) => (
               <div key={crumb.folder_id} className="flex items-center gap-1">
-                <ChevronRight className="h-4 w-4 text-[#62666d]" />
+                <ChevronRight className="h-4 w-4 text-dim-foreground" />
                 <button
                   type="button"
                   onClick={() => setCurrentFolderId(crumb.folder_id)}
                   className={cn(
-                    "max-w-[200px] cursor-pointer truncate rounded-lg px-2 py-0.5 transition-colors",
+                    "max-w-50 cursor-pointer truncate rounded-lg px-2 py-0.5 transition-colors",
                     idx === breadcrumbs.length - 1
-                      ? "text-[#f7f8f8]"
-                      : "text-[#8a8f98] hover:bg-[#1a1b1f] hover:text-[#f7f8f8]",
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
                   )}
                 >
                   {crumb.name}
@@ -74,7 +74,7 @@ export function DashboardCanvas() {
             ))}
           </div>
         ) : (
-          <h1 className="text-[20px] font-medium tracking-tight text-[#f7f8f8]">
+          <h1 className="text-xl font-medium tracking-tight text-foreground">
             {query
               ? `Search results for "${search}"`
               : section === "recent"
@@ -84,7 +84,7 @@ export function DashboardCanvas() {
                   : "Storage"}
           </h1>
         )}
-        <span className="hidden text-[11px] text-[#62666d] lg:inline">
+        <span className="hidden text-label text-dim-foreground lg:inline">
           Press N for folder · U to upload · Right-click or drop files anywhere
         </span>
       </div>
@@ -100,12 +100,12 @@ export function DashboardCanvas() {
               <button
                 type="button"
                 onClick={() => setSuggestedFoldersOpen((v) => !v)}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-[13px] font-medium text-[#d4d4d8] transition-colors hover:bg-[#1a1b1f]"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-body-sm font-medium text-strong-foreground transition-colors hover:bg-surface-hover"
               >
                 {suggestedFoldersOpen ? (
-                  <ChevronDown className="h-4 w-4 text-[#8a8f98]" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-[#8a8f98]" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
                 <span>Suggested folders</span>
               </button>
@@ -121,16 +121,16 @@ export function DashboardCanvas() {
                 type="button"
                 onClick={() => setSuggestedFilesOpen((v) => !v)}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",
+                  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-body-sm font-medium transition-colors",
                   suggestedFilesOpen
-                    ? "border-transparent text-[#d4d4d8] hover:bg-[#1a1b1f]"
-                    : "border-[#7170ff]/60 bg-[#7170ff]/10 text-[#f7f8f8]",
+                    ? "border-transparent text-strong-foreground hover:bg-surface-hover"
+                    : "border-brand/60 bg-brand/10 text-foreground",
                 )}
               >
                 {suggestedFilesOpen ? (
-                  <ChevronDown className="h-4 w-4 text-[#8a8f98]" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-[#7170ff]" />
+                  <ChevronRight className="h-4 w-4 text-brand" />
                 )}
                 <span>Suggested files</span>
               </button>
@@ -144,14 +144,14 @@ export function DashboardCanvas() {
         <div className="flex flex-1 flex-col gap-7">
           {visibleFolders.length > 0 && (
             <div className="space-y-3">
-              <div className="text-xs font-medium text-[#8a8f98]">Folders</div>
+              <div className="text-xs font-medium text-muted-foreground">Folders</div>
               <FolderGrid folders={visibleFolders} />
             </div>
           )}
 
           {visibleDocs.length > 0 && (
             <div className="space-y-3">
-              <div className="text-xs font-medium text-[#8a8f98]">Files</div>
+              <div className="text-xs font-medium text-muted-foreground">Files</div>
               <FileViews documents={visibleDocs} />
             </div>
           )}

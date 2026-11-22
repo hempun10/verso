@@ -29,7 +29,7 @@ export function LegalDialog({
       <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-[#7170ff]" />
+            <ShieldCheck className="h-4 w-4 text-brand" />
             Legal &amp; Privacy
           </DialogTitle>
           <DialogDescription>
@@ -53,7 +53,7 @@ export function LegalDialog({
             className="mt-3 space-y-3 text-xs leading-relaxed text-muted-foreground"
           >
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 1. Files &amp; Workspace Data
               </h3>
               <p>
@@ -64,7 +64,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 2. Account Information
               </h3>
               <p>
@@ -74,7 +74,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 3. Sharing &amp; Deletion
               </h3>
               <p>
@@ -86,7 +86,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 4. No Ad Tracking or Data Resale
               </h3>
               <p>
@@ -101,7 +101,7 @@ export function LegalDialog({
             className="mt-3 space-y-3 text-xs leading-relaxed text-muted-foreground"
           >
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 1. Acceptable Use
               </h3>
               <p>
@@ -112,7 +112,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 2. Ownership of Your Content
               </h3>
               <p>
@@ -122,7 +122,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 3. Storage &amp; Rate Limits
               </h3>
               <p>
@@ -132,7 +132,7 @@ export function LegalDialog({
               </p>
             </section>
             <section className="space-y-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-body-sm font-semibold text-foreground">
                 4. Availability &amp; Liability
               </h3>
               <p>

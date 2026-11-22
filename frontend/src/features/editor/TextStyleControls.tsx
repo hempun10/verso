@@ -167,7 +167,7 @@ export function TextStyleControls() {
                 type="button"
                 size="icon-sm"
                 variant="ghost"
-                className="h-6 w-6 rounded-md text-[11px] font-semibold"
+                className="h-6 w-6 rounded-md text-label font-semibold"
                 onClick={() => actions.transformSelectedCase(mode)}
               >
                 {text}
@@ -191,7 +191,7 @@ export function TextStyleControls() {
         <SelectTrigger
           aria-label="Font family"
           data-allow-focus="true"
-          className="w-[144px]"
+          className="w-36"
         >
           <SelectValue />
         </SelectTrigger>

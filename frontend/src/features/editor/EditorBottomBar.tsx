@@ -26,10 +26,10 @@ export function EditorBottomBar() {
   const pageCount = session.doc.page_count;
 
   return (
-    <div className="fixed bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-input bg-popover px-2.5 py-1 shadow-[0_14px_40px_-10px_rgba(0,0,0,0.8)]">
+    <div className="fixed bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-input bg-popover px-2.5 py-1 shadow-floating">
       <label className="toggle flex cursor-pointer items-center gap-1.5 px-1 text-xs font-medium text-foreground/90">
         {showBoxes ? (
-          <Eye className="h-3.5 w-3.5 text-[#7170ff]" />
+          <Eye className="h-3.5 w-3.5 text-brand" />
         ) : (
           <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
         )}
@@ -66,7 +66,7 @@ export function EditorBottomBar() {
             <button
               type="button"
               onClick={() => setZoom(1.25)}
-              className="min-w-[44px] cursor-pointer rounded-full px-1.5 py-0.5 text-center text-xs font-medium text-foreground/90 tabular-nums transition-colors hover:bg-accent"
+              className="min-w-11 cursor-pointer rounded-full px-1.5 py-0.5 text-center text-xs font-medium text-foreground/90 tabular-nums transition-colors hover:bg-accent"
             >
               {Math.round(zoom * 100)}%
             </button>

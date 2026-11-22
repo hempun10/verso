@@ -24,8 +24,8 @@ function AppViews() {
     return (
       <Suspense
         fallback={
-          <div className="flex h-dvh w-full items-center justify-center bg-[#0a0a0b] text-xs text-[#8a8f98]">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin text-[#7170ff]" />
+          <div className="flex h-dvh w-full items-center justify-center bg-shell text-xs text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand" />
             Loading workspace...
           </div>
         }

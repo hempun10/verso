@@ -59,7 +59,7 @@ export function EditorWorkspace() {
           !session.docLoading &&
           (!session.doc || session.isCanvasReady) && (
             <div className="pointer-events-none fixed right-5 bottom-5 z-30 flex items-center gap-2 rounded-full border border-input bg-popover px-3.5 py-2 text-xs font-medium text-foreground shadow-xl">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7170ff]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
               <span>{session.busy}</span>
             </div>
           )}

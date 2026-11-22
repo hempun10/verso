@@ -30,14 +30,14 @@ export function StampPreviewPane() {
   return (
     <div className="flex flex-col gap-3.5 p-5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary p-0.5 text-[11px]">
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary p-0.5 text-label">
           <button
             type="button"
             onClick={() => setPreviewPaper("paper")}
             className={cn(
               "cursor-pointer rounded-md px-2.5 py-1 font-medium transition-colors",
               previewPaper === "paper"
-                ? "bg-[#232428] text-foreground"
+                ? "bg-surface-active text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -49,7 +49,7 @@ export function StampPreviewPane() {
             className={cn(
               "cursor-pointer rounded-md px-2.5 py-1 font-medium transition-colors",
               previewPaper === "transparent"
-                ? "bg-[#232428] text-foreground"
+                ? "bg-surface-active text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -61,7 +61,7 @@ export function StampPreviewPane() {
           type="button"
           onClick={rerollGrain}
           title="Re-roll rubber ink grain pattern"
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-label font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <Dices className="h-3.5 w-3.5" />
           Re-roll grain
@@ -70,10 +70,10 @@ export function StampPreviewPane() {
 
       <div
         className={cn(
-          "relative flex aspect-square max-h-[370px] w-full items-center justify-center overflow-hidden rounded-xl border border-border p-4",
+          "relative flex aspect-square max-h-92.5 w-full items-center justify-center overflow-hidden rounded-xl border border-border p-4",
           previewPaper === "paper"
-            ? "bg-[#f8f7f3]"
-            : "bg-[length:16px_16px] bg-[linear-gradient(45deg,#1f2023_25%,transparent_25%),linear-gradient(-45deg,#1f2023_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2023_75%),linear-gradient(-45deg,transparent_75%,#1f2023_75%)] bg-[position:0_0,0_8px,8px_-8px,-8px_0] bg-[#141516]",
+            ? "bg-paper"
+            : "bg-checkerboard",
         )}
       >
         <canvas
@@ -83,9 +83,9 @@ export function StampPreviewPane() {
         />
 
         {extracting && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#08090a]/65 backdrop-blur-[1px]">
-            <Loader2 className="h-5 w-5 animate-spin text-[#7170ff]" />
-            <span className="text-xs font-medium text-[#f7f8f8]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/65 backdrop-blur-xs">
+            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <span className="text-xs font-medium text-foreground">
               Removing background &amp; capturing pixels...
             </span>
           </div>
@@ -93,8 +93,8 @@ export function StampPreviewPane() {
 
         {!hasSource && config.template === "raw" && !extracting && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-6 text-center">
-            <Stamp className="h-8 w-8 text-[#8a8f98]/60" />
-            <p className="text-xs font-medium text-[#62666d]">
+            <Stamp className="h-8 w-8 text-muted-foreground/60" />
+            <p className="text-xs font-medium text-dim-foreground">
               Upload a logo or stamp photo below
             </p>
           </div>
@@ -114,7 +114,7 @@ export function StampPreviewPane() {
           <div className="truncate text-xs font-medium text-foreground">
             {sourceLabel || "No logo uploaded yet (optional for seals)"}
           </div>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-label text-muted-foreground">
             PNG, JPG, WebP up to {formatFileSize(limits.max_image_bytes)}
           </div>
         </div>

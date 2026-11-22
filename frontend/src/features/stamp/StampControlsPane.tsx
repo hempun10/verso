@@ -40,7 +40,7 @@ function SliderField({
 }) {
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between text-[11px]">
+      <div className="flex items-center justify-between text-label">
         <span className="text-muted-foreground">{label}</span>
         <span className="font-mono text-foreground tabular-nums">
           {valueText}
@@ -52,7 +52,7 @@ function SliderField({
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-1.5 w-full cursor-pointer accent-[#7170ff]"
+        className="h-1.5 w-full cursor-pointer accent-brand"
       />
     </div>
   );
@@ -76,7 +76,7 @@ export function StampControlsPane() {
       {hasSource && <StampExtractControls />}
 
       <div className="space-y-2.5">
-        <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="text-label font-semibold tracking-wider text-muted-foreground uppercase">
           Seal Style &amp; Ink
         </div>
         <div className="grid grid-cols-4 gap-1.5">
@@ -86,9 +86,9 @@ export function StampControlsPane() {
               type="button"
               onClick={() => updateConfig("template", t.id)}
               className={cn(
-                "cursor-pointer rounded-lg border px-2 py-1.5 text-center text-[11px] font-medium transition-colors",
+                "cursor-pointer rounded-lg border px-2 py-1.5 text-center text-label font-medium transition-colors",
                 config.template === t.id
-                  ? "border-[#7170ff]/70 bg-[#7170ff]/18 text-foreground"
+                  ? "border-brand/70 bg-brand/18 text-foreground"
                   : "border-border bg-secondary text-muted-foreground hover:text-foreground",
               )}
             >
@@ -105,9 +105,9 @@ export function StampControlsPane() {
                 type="button"
                 onClick={() => updateConfig("borderStyle", b.id)}
                 className={cn(
-                  "cursor-pointer rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                  "cursor-pointer rounded-md border px-2 py-1 text-label font-medium transition-colors",
                   config.borderStyle === b.id
-                    ? "border-input bg-[#232428] text-foreground"
+                    ? "border-input bg-surface-active text-foreground"
                     : "border-border/60 bg-secondary/60 text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -130,7 +130,7 @@ export function StampControlsPane() {
                 className={cn(
                   "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 transition-transform hover:scale-105",
                   active
-                    ? "border-white ring-2 ring-[#7170ff]/60"
+                    ? "border-white ring-2 ring-brand/60"
                     : "border-border",
                 )}
                 style={{ backgroundColor: c.hex }}
@@ -141,7 +141,7 @@ export function StampControlsPane() {
           })}
           <label
             title="Custom ink color"
-            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 text-[11px] text-muted-foreground hover:text-foreground"
+            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 text-label text-muted-foreground hover:text-foreground"
           >
             <input
               type="color"
@@ -156,7 +156,7 @@ export function StampControlsPane() {
 
       {config.template !== "raw" && (
         <div className="space-y-2">
-          <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+          <div className="text-label font-semibold tracking-wider text-muted-foreground uppercase">
             Seal Text
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -193,7 +193,7 @@ export function StampControlsPane() {
       )}
 
       <div className="space-y-2.5">
-        <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="text-label font-semibold tracking-wider text-muted-foreground uppercase">
           Ink Realism &amp; Size
         </div>
         {hasSource && (

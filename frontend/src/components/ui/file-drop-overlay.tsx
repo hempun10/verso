@@ -19,15 +19,15 @@ export function FileDropOverlay({
   return (
     <div
       data-page-drop-overlay="true"
-      className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[#08090a]/80 p-6 backdrop-blur-xs"
+      className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-xs"
     >
-      <div className="flex w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#7170ff] bg-[#0f1011] px-8 py-12 text-center shadow-2xl">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7170ff]/15 text-[#7170ff]">
+      <div className="flex w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand bg-card px-8 py-12 text-center shadow-2xl">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/15 text-brand">
           <Upload className="h-6 w-6" />
         </div>
-        <div className="text-base font-semibold text-[#f7f8f8]">{title}</div>
+        <div className="text-base font-semibold text-foreground">{title}</div>
         {subtitle && (
-          <p className="text-xs text-[#a1a1aa] tabular-nums">{subtitle}</p>
+          <p className="text-xs text-subtle-foreground tabular-nums">{subtitle}</p>
         )}
       </div>
     </div>

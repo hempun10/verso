@@ -2,44 +2,44 @@ import { Eraser, FileText, ImagePlus, PenTool, Share2 } from "lucide-react";
 
 function TextEditingVisual() {
   return (
-    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#2a2b2f] bg-[#0f1011] p-5">
-      <div className="flex items-center justify-between border-b border-[#1f2023] pb-3">
-        <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
-          <FileText className="h-3.5 w-3.5 text-[#7170ff]" />
-          <span className="font-medium text-[#f7f8f8]">Proposal_2026.pdf</span>
+    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-input bg-card p-5">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-2 text-xs text-subtle-foreground">
+          <FileText className="h-3.5 w-3.5 text-brand" />
+          <span className="font-medium text-foreground">Proposal_2026.pdf</span>
         </div>
-        <span className="rounded-full bg-[#3ecf8e]/10 px-2 py-0.5 text-[11px] font-medium text-[#3ecf8e]">
+        <span className="rounded-full bg-success/10 px-2 py-0.5 text-label font-medium text-success">
           Saved
         </span>
       </div>
 
       <div className="my-auto space-y-3 py-2">
-        <div className="inline-flex items-center gap-2 rounded-lg border border-[#2a2b2f] bg-[#141516] px-2.5 py-1.5 text-[11px] text-[#a1a1aa] shadow-sm">
-          <span className="rounded bg-[#7170ff]/20 px-1.5 py-0.5 font-semibold text-[#f7f8f8]">
+        <div className="inline-flex items-center gap-2 rounded-lg border border-input bg-secondary px-2.5 py-1.5 text-label text-subtle-foreground shadow-sm">
+          <span className="rounded bg-brand/20 px-1.5 py-0.5 font-semibold text-foreground">
             B
           </span>
           <span className="px-1 italic">I</span>
           <span className="px-1 underline">U</span>
-          <span className="h-3 w-px bg-[#2a2b2f]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#7170ff]" />
-          <span className="text-[11px] text-[#f7f8f8]">12 pt</span>
+          <span className="h-3 w-px bg-input" />
+          <span className="h-2.5 w-2.5 rounded-full bg-brand" />
+          <span className="text-label text-foreground">12 pt</span>
         </div>
 
-        <div className="rounded-lg border border-[#7170ff] bg-[#7170ff]/10 px-3.5 py-2.5 text-sm text-[#f7f8f8]">
+        <div className="rounded-lg border border-brand bg-brand/10 px-3.5 py-2.5 text-sm text-foreground">
           Total due by December 15:{" "}
-          <span className="rounded bg-[#7170ff]/30 px-1 font-semibold">
+          <span className="rounded bg-brand/30 px-1 font-semibold">
             $2,450.00
           </span>
-          <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#7170ff] align-middle" />
+          <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-brand align-middle" />
         </div>
 
         <div className="space-y-1.5">
-          <div className="h-2 w-5/6 rounded-full bg-[#1c1d1f]" />
-          <div className="h-2 w-3/5 rounded-full bg-[#1c1d1f]" />
+          <div className="h-2 w-5/6 rounded-full bg-accent" />
+          <div className="h-2 w-3/5 rounded-full bg-accent" />
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-[#62666d]">
+      <div className="flex items-center justify-between text-label text-dim-foreground">
         <span>Original layout preserved</span>
         <span className="tabular-nums">Page 1 of 3</span>
       </div>
@@ -49,22 +49,22 @@ function TextEditingVisual() {
 
 function SignatureVisual() {
   return (
-    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#2a2b2f] bg-[#0f1011] p-5">
-      <div className="flex items-center justify-between border-b border-[#1f2023] pb-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-[#f7f8f8]">
-          <PenTool className="h-3.5 w-3.5 text-[#7170ff]" />
+    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-input bg-card p-5">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+          <PenTool className="h-3.5 w-3.5 text-brand" />
           <span>Signature library</span>
         </div>
-        <span className="rounded-md border border-[#2a2b2f] bg-[#141516] px-2 py-0.5 text-[11px] text-[#a1a1aa]">
+        <span className="rounded-md border border-input bg-secondary px-2 py-0.5 text-label text-subtle-foreground">
           2 saved
         </span>
       </div>
 
       <div className="my-auto flex flex-col gap-3 py-2">
-        <div className="flex items-center justify-center rounded-xl border border-dashed border-[#2a2b2f] bg-[#141516] px-5 py-6">
+        <div className="flex items-center justify-center rounded-xl border border-dashed border-input bg-secondary px-5 py-6">
           <svg
             viewBox="0 0 220 52"
-            className="h-11 w-48 text-[#f7f8f8]"
+            className="h-11 w-48 text-foreground"
             fill="none"
           >
             <path
@@ -77,15 +77,15 @@ function SignatureVisual() {
           </svg>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-[#1f2023] bg-[#141516] px-3 py-2 text-xs">
-          <span className="text-[#a1a1aa]">Alex Morgan · Primary</span>
-          <span className="text-[11px] font-medium text-[#7170ff]">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-secondary px-3 py-2 text-xs">
+          <span className="text-subtle-foreground">Alex Morgan · Primary</span>
+          <span className="text-label font-medium text-brand">
             Place on page →
           </span>
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-[#62666d]">
+      <div className="flex items-center justify-between text-label text-dim-foreground">
         <span>Draw or type once</span>
         <span>Synced to your account</span>
       </div>
@@ -95,46 +95,46 @@ function SignatureVisual() {
 
 function WhiteoutAndImagesVisual() {
   return (
-    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#2a2b2f] bg-[#0f1011] p-5">
-      <div className="flex items-center justify-between border-b border-[#1f2023] pb-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-[#f7f8f8]">
-          <ImagePlus className="h-3.5 w-3.5 text-[#7170ff]" />
+    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-input bg-card p-5">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+          <ImagePlus className="h-3.5 w-3.5 text-brand" />
           <span>Whiteout &amp; stamps</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-[#a1a1aa]">
-          <span className="rounded border border-[#2a2b2f] bg-[#141516] px-1.5 py-0.5">
+        <div className="flex items-center gap-1.5 text-label text-subtle-foreground">
+          <span className="rounded border border-input bg-secondary px-1.5 py-0.5">
             Rotate
           </span>
-          <span className="rounded border border-[#2a2b2f] bg-[#141516] px-1.5 py-0.5">
+          <span className="rounded border border-input bg-secondary px-1.5 py-0.5">
             Crop
           </span>
         </div>
       </div>
 
       <div className="my-auto grid grid-cols-[1.2fr_0.8fr] items-center gap-3 py-2">
-        <div className="space-y-2.5 rounded-xl border border-[#1f2023] bg-[#141516] p-3.5">
-          <div className="h-2 w-3/4 rounded-full bg-[#2a2b2f]" />
+        <div className="space-y-2.5 rounded-xl border border-border bg-secondary p-3.5">
+          <div className="h-2 w-3/4 rounded-full bg-input" />
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#7170ff]/70 bg-[#08090a] px-2.5 py-1 text-[11px] text-[#a1a1aa]">
-              <Eraser className="h-3 w-3 text-[#7170ff]" />
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-brand/70 bg-background px-2.5 py-1 text-label text-subtle-foreground">
+              <Eraser className="h-3 w-3 text-brand" />
               <span>Hidden note</span>
             </div>
           </div>
-          <div className="h-2 w-5/6 rounded-full bg-[#2a2b2f]" />
-          <div className="h-2 w-1/2 rounded-full bg-[#2a2b2f]" />
+          <div className="h-2 w-5/6 rounded-full bg-input" />
+          <div className="h-2 w-1/2 rounded-full bg-input" />
         </div>
 
-        <div className="flex -rotate-3 flex-col items-center justify-center rounded-xl border border-[#3ecf8e]/30 bg-[#3ecf8e]/10 p-4 text-center">
-          <span className="text-[11px] font-semibold tracking-widest text-[#3ecf8e] uppercase">
+        <div className="flex -rotate-3 flex-col items-center justify-center rounded-xl border border-success/30 bg-success/10 p-4 text-center">
+          <span className="text-label font-semibold tracking-widest text-success uppercase">
             Approved
           </span>
-          <span className="mt-0.5 text-[10px] text-[#3ecf8e]/80">
+          <span className="mt-0.5 text-2xs text-success/80">
             Custom stamp
           </span>
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-[#62666d]">
+      <div className="flex items-center justify-between text-label text-dim-foreground">
         <span>PNG, JPG &amp; WebP ready</span>
         <span>Drag to resize or tilt</span>
       </div>
@@ -144,14 +144,14 @@ function WhiteoutAndImagesVisual() {
 
 function SharingVisual() {
   return (
-    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#2a2b2f] bg-[#0f1011] p-5">
-      <div className="flex items-center justify-between border-b border-[#1f2023] pb-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-[#f7f8f8]">
-          <Share2 className="h-3.5 w-3.5 text-[#7170ff]" />
+    <div className="flex aspect-[16/10] w-full flex-col justify-between overflow-hidden rounded-xl border border-input bg-card p-5">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+          <Share2 className="h-3.5 w-3.5 text-brand" />
           <span>Drive folders &amp; sharing</span>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] text-[#3ecf8e]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#3ecf8e]" />
+        <span className="inline-flex items-center gap-1 text-label text-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
           Synced
         </span>
       </div>
@@ -164,22 +164,22 @@ function SharingVisual() {
         ].map((row) => (
           <div
             key={row.name}
-            className="flex items-center justify-between rounded-lg border border-[#1f2023] bg-[#141516] px-3 py-2 text-xs"
+            className="flex items-center justify-between rounded-lg border border-border bg-secondary px-3 py-2 text-xs"
           >
             <div className="flex min-w-0 items-center gap-2">
-              <FileText className="h-3.5 w-3.5 shrink-0 text-[#62666d]" />
-              <span className="truncate font-medium text-[#f7f8f8]">
+              <FileText className="h-3.5 w-3.5 shrink-0 text-dim-foreground" />
+              <span className="truncate font-medium text-foreground">
                 {row.name}
               </span>
             </div>
-            <span className="shrink-0 text-[11px] text-[#8a8f98] tabular-nums">
+            <span className="shrink-0 text-label text-muted-foreground tabular-nums">
               {row.meta}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-[#62666d]">
+      <div className="flex items-center justify-between text-label text-dim-foreground">
         <span>Organize in folders</span>
         <span>Shareable edit links</span>
       </div>

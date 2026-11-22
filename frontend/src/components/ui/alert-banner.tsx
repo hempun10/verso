@@ -19,7 +19,7 @@ export function AlertBanner({
     <div
       role="alert"
       className={cn(
-        "flex items-start justify-between gap-2 rounded-lg border border-destructive/35 bg-destructive/12 px-3 py-2 text-xs text-[#f7d8d2]",
+        "flex items-start justify-between gap-2 rounded-lg border border-destructive/35 bg-destructive/12 px-3 py-2 text-xs text-danger-text",
         className,
       )}
     >
@@ -32,7 +32,7 @@ export function AlertBanner({
           type="button"
           aria-label="Dismiss alert"
           onClick={onDismiss}
-          className="cursor-pointer rounded p-0.5 text-[#f7d8d2]/75 transition-colors hover:bg-destructive/20 hover:text-white"
+          className="cursor-pointer rounded p-0.5 text-danger-text/75 transition-colors hover:bg-destructive/20 hover:text-white"
         >
           <X className="h-3.5 w-3.5" />
         </button>

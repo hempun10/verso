@@ -11,7 +11,7 @@ export function EditorCanvas() {
   if (session.docLoading) {
     return (
       <div data-doc-skeleton="true" className="flex flex-col items-center gap-4">
-        <div className="relative flex aspect-[612/792] w-[min(740px,92vw)] flex-col gap-5 rounded-md border border-border bg-card p-12 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.8)]">
+        <div className="relative flex aspect-[612/792] w-[min(740px,92vw)] flex-col gap-5 rounded-md border border-border bg-card p-12 shadow-canvas">
           <Skeleton className="h-7 w-2/5" />
           <div className="space-y-2.5 pt-2">
             <Skeleton className="h-3.5 w-full" />
@@ -36,7 +36,7 @@ export function EditorCanvas() {
           </div>
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="flex items-center gap-2 rounded-full border border-input bg-popover/95 px-4 py-2 text-xs font-medium text-foreground shadow-xl">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7170ff]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
               <span>{session.busy || "Loading document..."}</span>
             </div>
           </div>
@@ -59,7 +59,7 @@ export function EditorCanvas() {
     <div className="flex flex-col items-center gap-4">
       {currentPage && (
         <div
-          className="page-canvas relative overflow-visible rounded-sm bg-white shadow-[0_24px_70px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/10"
+          className="page-canvas relative overflow-visible rounded-sm bg-white shadow-canvas ring-1 ring-white/10"
           style={{
             width: currentPage.width_pt * zoom,
             height: currentPage.height_pt * zoom,
@@ -102,7 +102,7 @@ export function EditorCanvas() {
               </div>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="flex items-center gap-2 rounded-full border border-input bg-popover/95 px-4 py-2 text-xs font-medium text-foreground shadow-xl">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7170ff]" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
                   <span>{busy || "Rendering page..."}</span>
                 </div>
               </div>
@@ -150,8 +150,8 @@ export function EditorCanvas() {
       )}
 
       {totalChanges === 0 && !actions.selectedId && !busy && (
-        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1 text-[11px] text-muted-foreground shadow-sm">
-          <Sparkles className="h-3 w-3 text-[#7170ff]" />
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1 text-label text-muted-foreground shadow-sm">
+          <Sparkles className="h-3 w-3 text-brand" />
           <span>
             Click text to edit, use Whiteout to cover sections, Sign to
             draw/save a signature, or Image for watermarks

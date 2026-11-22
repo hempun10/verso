@@ -30,10 +30,10 @@ export function EditorAccountMenu() {
             aria-label="Account menu"
             className="h-8 gap-1.5 rounded-full pr-2.5 pl-1.5"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
               {(user.name || user.email).slice(0, 1).toUpperCase()}
             </span>
-            <span className="hidden max-w-[80px] truncate text-xs font-medium xl:inline">
+            <span className="hidden max-w-20 truncate text-xs font-medium xl:inline">
               {user.name}
             </span>
           </Button>
@@ -43,7 +43,7 @@ export function EditorAccountMenu() {
             <div className="text-xs font-semibold text-foreground">
               {user.name}
             </div>
-            <div className="truncate text-[11px] text-muted-foreground">
+            <div className="truncate text-label text-muted-foreground">
               {user.email}
             </div>
           </div>

@@ -104,7 +104,7 @@ export function AuthDialog({
             type="button"
             variant="outline"
             size="lg"
-            className="h-10 w-full justify-center gap-2.5 border-[#2a2b2f] bg-[#141516] text-[13px] font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="h-10 w-full justify-center gap-2.5 border-input bg-secondary text-body-sm font-medium text-foreground hover:bg-accent"
             disabled={!oauthReady}
             onClick={() => onOAuthLogin("google")}
           >
@@ -115,7 +115,7 @@ export function AuthDialog({
             type="button"
             variant="outline"
             size="lg"
-            className="h-10 w-full justify-center gap-2.5 border-[#2a2b2f] bg-[#141516] text-[13px] font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="h-10 w-full justify-center gap-2.5 border-input bg-secondary text-body-sm font-medium text-foreground hover:bg-accent"
             disabled={!oauthReady}
             onClick={() => onOAuthLogin("github")}
           >
@@ -134,7 +134,7 @@ export function AuthDialog({
           <>
             <div className="relative flex items-center py-1">
               <Separator className="flex-1" />
-              <span className="px-2.5 text-[10px] tracking-wider text-muted-foreground uppercase">
+              <span className="px-2.5 text-2xs tracking-wider text-muted-foreground uppercase">
                 Dev test accounts
               </span>
               <Separator className="flex-1" />
@@ -148,7 +148,7 @@ export function AuthDialog({
                   onToken={setCaptchaToken}
                 />
                 {!captchaToken && (
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-label text-muted-foreground">
                     Complete verification to continue
                   </p>
                 )}
@@ -219,7 +219,7 @@ export function AuthDialog({
           </>
         )}
 
-        <p className="pt-1 text-center text-[11px] leading-relaxed text-muted-foreground">
+        <p className="pt-1 text-center text-label leading-relaxed text-muted-foreground">
           By continuing, you agree to our{" "}
           <button
             type="button"

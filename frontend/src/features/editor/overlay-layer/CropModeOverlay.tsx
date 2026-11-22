@@ -36,7 +36,7 @@ export function CropModeOverlay({
       data-overlay-kind="image"
       data-crop-mode="true"
       onMouseDown={(e) => e.stopPropagation()}
-      className="pdf-overlay absolute z-[18] select-none"
+      className="pdf-overlay absolute z-18 select-none"
       style={{
         left: fullX0 * zoom,
         top: fullY0 * zoom,

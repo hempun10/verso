@@ -50,17 +50,17 @@ export function UploadQueueToast({
   return (
     <div
       data-upload-queue="true"
-      className="fixed right-4 bottom-4 z-50 w-[340px] max-w-[calc(100vw-32px)] overflow-hidden rounded-xl border border-[#2a2b2f] bg-[#141516] text-[#f7f8f8] shadow-[0_20px_60px_-14px_rgba(0,0,0,0.85)]"
+      className="fixed right-4 bottom-4 z-50 w-85 max-w-[calc(100vw-32px)] overflow-hidden rounded-xl border border-input bg-secondary text-foreground shadow-dialog"
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#1f2023] bg-[#0f1011] px-3.5 py-2.5">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-3.5 py-2.5">
         <div className="flex min-w-0 items-center gap-2 text-xs font-semibold">
           {!isFinished ? (
-            <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#7170ff]" />
+            <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-brand" />
           ) : errorCount > 0 ? (
-            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#e0705f]" />
+            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
           ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#3ecf8e]" />
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
           )}
           <span className="truncate">{title}</span>
         </div>
@@ -70,7 +70,7 @@ export function UploadQueueToast({
             type="button"
             aria-label={collapsed ? "Expand upload list" : "Collapse upload list"}
             onClick={() => setCollapsed((c) => !c)}
-            className="cursor-pointer rounded-md p-1 text-[#8a8f98] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
+            className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             {collapsed ? (
               <ChevronUp className="h-3.5 w-3.5" />
@@ -83,7 +83,7 @@ export function UploadQueueToast({
               type="button"
               aria-label="Dismiss upload queue"
               onClick={onDismiss}
-              className="cursor-pointer rounded-md p-1 text-[#8a8f98] transition-colors hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
+              className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -93,7 +93,7 @@ export function UploadQueueToast({
 
       {/* File Rows */}
       {!collapsed && (
-        <div className="max-h-60 divide-y divide-[#1f2023] overflow-y-auto">
+        <div className="max-h-60 divide-y divide-border overflow-y-auto">
           {items.map((item) => (
             <div
               key={item.id}
@@ -109,15 +109,15 @@ export function UploadQueueToast({
                     className={cn(
                       "truncate font-medium",
                       item.status === "error"
-                        ? "text-[#f7d8d2]"
-                        : "text-[#f7f8f8]",
+                        ? "text-danger-text"
+                        : "text-foreground",
                     )}
                     title={item.filename}
                   >
                     {item.filename}
                   </div>
                   {item.error && (
-                    <div className="mt-0.5 text-[11px] leading-snug text-[#e0705f]">
+                    <div className="mt-0.5 text-label leading-snug text-destructive">
                       {item.error}
                     </div>
                   )}
@@ -126,25 +126,25 @@ export function UploadQueueToast({
 
               <div className="flex shrink-0 items-center gap-2 pt-0.5">
                 {item.status === "queued" && (
-                  <Clock className="h-3.5 w-3.5 text-[#62666d]" />
+                  <Clock className="h-3.5 w-3.5 text-dim-foreground" />
                 )}
                 {item.status === "uploading" && (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7170ff]" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
                 )}
                 {item.status === "done" && item.docId && (
                   <>
                     <button
                       type="button"
                       onClick={() => onOpenDocument(item.docId!)}
-                      className="cursor-pointer rounded px-1.5 py-0.5 text-[11px] font-medium text-[#7170ff] transition-colors hover:bg-[#7170ff]/15"
+                      className="cursor-pointer rounded px-1.5 py-0.5 text-label font-medium text-brand transition-colors hover:bg-brand/15"
                     >
                       Open
                     </button>
-                    <CheckCircle2 className="h-3.5 w-3.5 text-[#3ecf8e]" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                   </>
                 )}
                 {item.status === "error" && (
-                  <AlertCircle className="h-3.5 w-3.5 text-[#e0705f]" />
+                  <AlertCircle className="h-3.5 w-3.5 text-destructive" />
                 )}
               </div>
             </div>

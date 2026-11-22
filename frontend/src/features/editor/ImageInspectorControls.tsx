@@ -30,7 +30,7 @@ export function ImageInspectorControls({
 }: ImageInspectorControlsProps) {
   return (
     <>
-      <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[11px]">
+      <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-label">
         <ImageIcon className="h-3 w-3" />
         Image
       </Badge>
@@ -65,7 +65,7 @@ export function ImageInspectorControls({
               ? "default"
               : "ghost"
           }
-          className="h-6 rounded-md px-2 text-[11px]"
+          className="h-6 rounded-md px-2 text-label"
           onClick={() => onUpdate({ opacity: 1, angle_deg: 0 })}
         >
           Signature
@@ -74,7 +74,7 @@ export function ImageInspectorControls({
           type="button"
           size="sm"
           variant={overlay.opacity <= 0.4 ? "default" : "ghost"}
-          className="h-6 gap-1 rounded-md px-2 text-[11px]"
+          className="h-6 gap-1 rounded-md px-2 text-label"
           onClick={() => onUpdate({ opacity: 0.25, angle_deg: -30 })}
         >
           <Stamp className="h-3 w-3" />

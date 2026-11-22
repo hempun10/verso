@@ -39,7 +39,7 @@ export function DashboardContextMenu() {
       style={{ left: menu.x, top: menu.y }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
-      className="fixed z-50 w-52 rounded-xl border border-[#2a2b2f] bg-[#141516] p-1.5 text-[#f7f8f8] shadow-[0_18px_48px_-12px_rgba(0,0,0,0.85)]"
+      className="fixed z-50 w-52 rounded-xl border border-input bg-secondary p-1.5 text-foreground shadow-menu"
     >
       {menu.kind === "canvas" && (
         <>
@@ -47,9 +47,9 @@ export function DashboardContextMenu() {
             type="button"
             role="menuitem"
             onClick={() => openNewFolderDialog(uploadTargetFolderId)}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-foreground hover:bg-accent"
           >
-            <FolderPlus className="h-3.5 w-3.5 text-[#7170ff]" />
+            <FolderPlus className="h-3.5 w-3.5 text-brand" />
             <span>New folder</span>
           </button>
           <button
@@ -59,12 +59,12 @@ export function DashboardContextMenu() {
               close();
               chooseFile(uploadTargetFolderId);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-foreground hover:bg-accent"
           >
-            <Upload className="h-3.5 w-3.5 text-[#a1a1aa]" />
+            <Upload className="h-3.5 w-3.5 text-subtle-foreground" />
             <span>Upload file</span>
           </button>
-          <Separator className="my-1 bg-[#1f2023]" />
+          <Separator className="my-1 bg-border" />
           <button
             type="button"
             role="menuitem"
@@ -72,7 +72,7 @@ export function DashboardContextMenu() {
               close();
               void refreshWorkspace(true);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#a1a1aa] hover:bg-[#1c1d1f] hover:text-[#f7f8f8]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-subtle-foreground hover:bg-accent hover:text-foreground"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
@@ -89,18 +89,18 @@ export function DashboardContextMenu() {
               close();
               openFolder(menu.folder.folder_id);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-foreground hover:bg-accent"
           >
-            <FolderOpen className="h-3.5 w-3.5 text-[#7170ff]" />
+            <FolderOpen className="h-3.5 w-3.5 text-brand" />
             <span>Open folder</span>
           </button>
           <button
             type="button"
             role="menuitem"
             onClick={() => openNewFolderDialog(menu.folder.folder_id)}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-strong-foreground hover:bg-accent"
           >
-            <FolderPlus className="h-3.5 w-3.5 text-[#8a8f98]" />
+            <FolderPlus className="h-3.5 w-3.5 text-muted-foreground" />
             <span>New folder inside</span>
           </button>
           <button
@@ -110,12 +110,12 @@ export function DashboardContextMenu() {
               close();
               chooseFile(menu.folder.folder_id);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-strong-foreground hover:bg-accent"
           >
-            <Upload className="h-3.5 w-3.5 text-[#8a8f98]" />
+            <Upload className="h-3.5 w-3.5 text-muted-foreground" />
             <span>Upload file here</span>
           </button>
-          <Separator className="my-1 bg-[#1f2023]" />
+          <Separator className="my-1 bg-border" />
           <button
             type="button"
             role="menuitem"
@@ -124,16 +124,16 @@ export function DashboardContextMenu() {
               setRenameTarget(menu.folder);
               setRenameValue(menu.folder.name);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-strong-foreground hover:bg-accent"
           >
-            <Pencil className="h-3.5 w-3.5 text-[#8a8f98]" />
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
             <span>Rename</span>
           </button>
           <button
             type="button"
             role="menuitem"
             onClick={() => void handleDeleteFolder(menu.folder.folder_id)}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Delete folder</span>
@@ -150,9 +150,9 @@ export function DashboardContextMenu() {
               close();
               void session.loadSavedDocument(menu.doc.doc_id);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-[#f7f8f8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-foreground hover:bg-accent"
           >
-            <FileText className="h-3.5 w-3.5 text-[#7170ff]" />
+            <FileText className="h-3.5 w-3.5 text-brand" />
             <span>Open in editor</span>
           </button>
           <button
@@ -162,17 +162,17 @@ export function DashboardContextMenu() {
               close();
               setMoveTarget(menu.doc);
             }}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#d4d4d8] hover:bg-[#1c1d1f]"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-strong-foreground hover:bg-accent"
           >
-            <FolderInput className="h-3.5 w-3.5 text-[#8a8f98]" />
+            <FolderInput className="h-3.5 w-3.5 text-muted-foreground" />
             <span>Move to folder</span>
           </button>
-          <Separator className="my-1 bg-[#1f2023]" />
+          <Separator className="my-1 bg-border" />
           <button
             type="button"
             role="menuitem"
             onClick={() => void handleDeleteDoc(menu.doc.doc_id)}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-[#e0705f] hover:bg-[#e0705f]/10"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Delete</span>

@@ -57,12 +57,12 @@ export function OverlayItem({
         "pdf-overlay absolute select-none",
         toolMode === "whiteout" ? "pointer-events-none" : "cursor-move",
         isSelected
-          ? "z-[15] ring-2 ring-blue-600"
+          ? "z-15 ring-2 ring-blue-600"
           : overlay.kind === "whiteout"
             ? showBoxes
-              ? "z-[8] border border-dashed border-zinc-400/80 hover:border-blue-500"
-              : "z-[8] hover:ring-1 hover:ring-blue-500/70"
-            : "z-[9] hover:ring-1 hover:ring-blue-500/80",
+              ? "z-8 border border-dashed border-zinc-400/80 hover:border-blue-500"
+              : "z-8 hover:ring-1 hover:ring-blue-500/70"
+            : "z-9 hover:ring-1 hover:ring-blue-500/80",
       )}
       style={{
         left: x0 * zoom,
@@ -114,7 +114,7 @@ export function OverlayItem({
               </button>
               <div className="h-3 w-px bg-blue-600" />
               {isRotating && (
-                <div className="pointer-events-none absolute -top-7 rounded-md bg-zinc-900 px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap text-white shadow-sm tabular-nums">
+                <div className="pointer-events-none absolute -top-7 rounded-md bg-zinc-900 px-1.5 py-0.5 text-2xs font-medium whitespace-nowrap text-white shadow-sm tabular-nums">
                   {Math.round(activeAngle)}°
                 </div>
               )}

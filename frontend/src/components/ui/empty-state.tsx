@@ -24,19 +24,19 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#2a2b2f] bg-[#141516]/50 text-center",
+        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-input bg-secondary/50 text-center",
         compact ? "min-h-36 gap-1 px-4 py-6" : "px-6 py-14",
         className,
       )}
     >
       {icon && (
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-[#2a2b2f] bg-[#141516] text-[#a1a1aa]">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-input bg-secondary text-subtle-foreground">
           {icon}
         </div>
       )}
       <h2
         className={cn(
-          "font-semibold text-[#f7f8f8]",
+          "font-semibold text-foreground",
           compact ? "text-xs" : "text-sm",
         )}
       >
@@ -45,8 +45,8 @@ export function EmptyState({
       {description && (
         <p
           className={cn(
-            "mt-1 max-w-xs leading-relaxed text-[#8a8f98]",
-            compact ? "text-[11px]" : "text-xs",
+            "mt-1 max-w-xs leading-relaxed text-muted-foreground",
+            compact ? "text-label" : "text-xs",
           )}
         >
           {description}

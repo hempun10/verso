@@ -156,13 +156,13 @@ export function DashboardModals() {
                 My Drive (Root)
               </span>
               {movingTargetId === "__root__" ? (
-                <span className="inline-flex items-center gap-1.5 text-[11px] text-[#7170ff]">
+                <span className="inline-flex items-center gap-1.5 text-label text-brand">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Moving...
                 </span>
               ) : (
                 !moveTarget?.folder_id && (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-2xs text-muted-foreground">
                     Current
                   </span>
                 )
@@ -188,17 +188,17 @@ export function DashboardModals() {
                   )}
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <Folder className="h-3.5 w-3.5 shrink-0 text-[#7170ff]" />
+                    <Folder className="h-3.5 w-3.5 shrink-0 text-brand" />
                     <span className="truncate">{folder.name}</span>
                   </span>
                   {isMovingHere ? (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] text-[#7170ff]">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 text-label text-brand">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Moving...
                     </span>
                   ) : (
                     isCurrent && (
-                      <span className="shrink-0 text-[10px] text-muted-foreground">
+                      <span className="shrink-0 text-2xs text-muted-foreground">
                         Current
                       </span>
                     )

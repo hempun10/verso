@@ -33,19 +33,19 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
               onContextMenu={(e) =>
                 openContextMenu(e, { kind: "folder", folder })
               }
-              className="group flex items-center justify-between gap-2 rounded-xl border border-[#1f2023] bg-[#141516] px-3.5 py-2.5 transition-colors hover:border-[#2a2b2f] hover:bg-[#1a1b1f]"
+              className="group flex items-center justify-between gap-2 rounded-xl border border-border bg-secondary px-3.5 py-2.5 transition-colors hover:border-input hover:bg-surface-hover"
             >
               <button
                 type="button"
                 onClick={() => openFolder(folder.folder_id)}
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
               >
-                <Folder className="h-4 w-4 shrink-0 text-[#a1a1aa] transition-colors group-hover:text-[#7170ff]" />
+                <Folder className="h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-brand" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-medium text-[#f7f8f8]">
+                  <div className="truncate text-body-sm font-medium text-foreground">
                     {folder.name}
                   </div>
-                  <div className="truncate text-[11px] text-[#62666d]">
+                  <div className="truncate text-label text-dim-foreground">
                     in {parentName}
                   </div>
                 </div>
@@ -55,7 +55,7 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
                 aria-label={`Folder options for ${folder.name}`}
                 disabled={isDeleting}
                 onClick={(e) => openContextMenu(e, { kind: "folder", folder })}
-                className="cursor-pointer rounded-full p-1 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
+                className="cursor-pointer rounded-full p-1 text-dim-foreground transition-colors hover:bg-surface-active hover:text-foreground"
               >
                 {isDeleting ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -75,7 +75,7 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
       className={cn(
         viewMode === "grid"
           ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-          : "divide-y divide-[#1f2023] overflow-hidden rounded-xl border border-[#1f2023] bg-[#141516]/60",
+          : "divide-y divide-border overflow-hidden rounded-xl border border-border bg-secondary/60",
       )}
     >
       {folders.map((folder) => {
@@ -107,8 +107,8 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
             className={cn(
               "group flex items-center justify-between gap-2 transition-colors",
               viewMode === "grid"
-                ? "rounded-xl border border-[#1f2023] bg-[#141516] px-3.5 py-2.5 hover:border-[#2a2b2f] hover:bg-[#1a1b1f]"
-                : "px-4 py-2.5 hover:bg-[#16171a]",
+                ? "rounded-xl border border-border bg-secondary px-3.5 py-2.5 hover:border-input hover:bg-surface-hover"
+                : "px-4 py-2.5 hover:bg-surface-hover",
             )}
           >
             <button
@@ -116,12 +116,12 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
               onClick={() => openFolder(folder.folder_id)}
               className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
             >
-              <Folder className="h-4 w-4 shrink-0 text-[#7170ff]" />
+              <Folder className="h-4 w-4 shrink-0 text-brand" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-medium text-[#f7f8f8]">
+                <div className="truncate text-body-sm font-medium text-foreground">
                   {folder.name}
                 </div>
-                <div className="text-[11px] text-[#62666d] tabular-nums">
+                <div className="text-label text-dim-foreground tabular-nums">
                   {subtitle}
                 </div>
               </div>
@@ -131,7 +131,7 @@ export function FolderGrid({ folders, compactPill = false }: FolderGridProps) {
               aria-label={`Folder options for ${folder.name}`}
               disabled={isDeleting}
               onClick={(e) => openContextMenu(e, { kind: "folder", folder })}
-              className="cursor-pointer rounded-full p-1 text-[#62666d] transition-colors hover:bg-[#232428] hover:text-[#f7f8f8]"
+              className="cursor-pointer rounded-full p-1 text-dim-foreground transition-colors hover:bg-surface-active hover:text-foreground"
             >
               {isDeleting ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
