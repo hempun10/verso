@@ -9,13 +9,21 @@ import { WORKS_ON } from "./FeatureVisuals";
 import { PrimaryCtaButton, SecondaryButton } from "./primitives";
 
 export function LandingHero() {
-  const { authConfig, uploadLimits, captchaRequired } = useWorkspace();
+  const { authConfig, isSignedIn, uploadLimits, captchaRequired, setAuthOpen } =
+    useWorkspace();
   const { upload, chooseFile, openDashboard } = useEditor();
   const [isDragging, setIsDragging] = useState(false);
 
   const turnstileSiteKey = authConfig?.turnstile_site_key ?? "";
-  const uploadDisabled = captchaRequired && !upload.uploadCaptchaToken;
-  const handleChoose = () => chooseFile(null, true);
+  const uploadDisabled =
+    isSignedIn && captchaRequired && !upload.uploadCaptchaToken;
+  const handleChoose = () => {
+    if (!isSignedIn) {
+      setAuthOpen(true);
+      return;
+    }
+    chooseFile(null, true);
+  };
 
   return (
     <section id="hero" className="relative w-full">
@@ -41,7 +49,7 @@ export function LandingHero() {
           <div className="flex flex-col items-center gap-5">
             <div className="flex flex-wrap items-center justify-center gap-3">
               <PrimaryCtaButton onClick={handleChoose} disabled={uploadDisabled}>
-                Choose a file
+                {isSignedIn ? "Choose a file" : "Sign in to start"}
               </PrimaryCtaButton>
               <SecondaryButton onClick={openDashboard}>
                 Open dashboard
@@ -114,7 +122,7 @@ export function LandingHero() {
             place, sign, and export as PDF or PNG.
           </p>
 
-          {captchaRequired && turnstileSiteKey && (
+          {isSignedIn && captchaRequired && turnstileSiteKey && (
             <div
               className="mt-5 flex flex-col items-center gap-1.5"
               onClick={(e) => e.stopPropagation()}
@@ -134,14 +142,16 @@ export function LandingHero() {
 
           <div className="mt-6">
             <PrimaryCtaButton disabled={uploadDisabled}>
-              Choose PDF or image
+              {isSignedIn ? "Choose PDF or image" : "Sign in to upload"}
             </PrimaryCtaButton>
           </div>
 
           <p className="mt-4 text-xs text-dim-foreground tabular-nums">
             PDF up to {formatFileSize(uploadLimits.max_pdf_bytes)} · PNG, JPG,
-            WebP up to {formatFileSize(uploadLimits.max_image_bytes)} · No
-            signup needed
+            WebP up to {formatFileSize(uploadLimits.max_image_bytes)} ·{" "}
+            {isSignedIn
+              ? "Synced to your workspace"
+              : "Free sign-in required"}
           </p>
         </div>
       </div>

@@ -10,6 +10,7 @@ import {
 import { useWorkspace } from "@/features/workspace/WorkspaceContext";
 import { useHistory } from "@/hooks/useHistory";
 import type { AssetItem, PageOverlay } from "@/types";
+import type { EditorContextValue } from "./contextTypes";
 import {
   type EditMap,
   EMPTY_SNAPSHOT,
@@ -23,38 +24,7 @@ import { useEditorActions } from "./useEditorActions";
 import { useEditorShortcuts } from "./useEditorShortcuts";
 import { useUploadFlow } from "./useUploadFlow";
 
-export interface EditorContextValue {
-  editsMap: EditMap;
-  canUndo: boolean;
-  canRedo: boolean;
-  undo: () => void;
-  redo: () => void;
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
-  showBoxes: boolean;
-  setShowBoxes: React.Dispatch<React.SetStateAction<boolean>>;
-  docsOpen: boolean;
-  setDocsOpen: (open: boolean) => void;
-  shareOpen: boolean;
-  setShareOpen: (open: boolean) => void;
-  signOpen: boolean;
-  setSignOpen: (open: boolean) => void;
-  imageOpen: boolean;
-  setImageOpen: (open: boolean) => void;
-  stampOpen: boolean;
-  setStampOpen: (open: boolean) => void;
-  stampSeed: StampSeed;
-  openStampStudio: (opts?: { file?: File; asset?: AssetItem }) => void;
-  session: ReturnType<typeof useDocumentSession>;
-  actions: ReturnType<typeof useEditorActions>;
-  upload: ReturnType<typeof useUploadFlow>;
-  assetsPlacement: ReturnType<typeof useAssetPlacement>;
-  chooseFile: (folderId?: string | null, requireCaptchaCheck?: boolean) => void;
-  openDashboard: () => void;
-  goToLanding: () => void;
-  signOut: () => Promise<void>;
-  deleteDocument: (docId: string) => Promise<void>;
-}
+export type { EditorContextValue };
 
 const EditorContext = createContext<EditorContextValue | null>(null);
 
@@ -123,6 +93,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   };
 
   const upload = useUploadFlow({
+    isSignedIn: workspace.isSignedIn,
+    onRequireAuth: () => workspace.setAuthOpen(true),
     uploadLimits: workspace.uploadLimits,
     captchaRequired: workspace.captchaRequired,
     hasActiveDoc: Boolean(session.doc),
@@ -156,18 +128,27 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     onSetToolMode: actions.setToolMode,
   });
 
-  // Deep-link boot: open ?doc=...&share=... once on mount.
+  // Deep-link boot: open ?doc=...&share=... only after auth is confirmed.
   const loadSavedDocRef = useRef(session.loadSavedDocument);
   loadSavedDocRef.current = session.loadSavedDocument;
+  const setDocLoadingRef = useRef(session.setDocLoading);
+  setDocLoadingRef.current = session.setDocLoading;
+  const deepLinkHandledRef = useRef(false);
   useEffect(() => {
+    if (workspace.authLoading || deepLinkHandledRef.current) return;
+    deepLinkHandledRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const urlDoc = params.get("doc");
     if (!urlDoc) return;
+    if (!workspace.isSignedIn) {
+      setDocLoadingRef.current(false);
+      return;
+    }
     void Promise.all([
       workspace.refreshWorkspace(),
       loadSavedDocRef.current(urlDoc, params.get("share")),
     ]);
-  }, [workspace.refreshWorkspace]);
+  }, [workspace.authLoading, workspace.isSignedIn, workspace.refreshWorkspace]);
 
   useEditorShortcuts({
     doc: session.doc,
@@ -207,6 +188,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   });
 
   const chooseFile = (folderId: string | null = null, checkCaptcha = false) => {
+    if (!workspace.isSignedIn) {
+      workspace.setAuthOpen(true);
+      return;
+    }
     if (checkCaptcha && workspace.captchaRequired && !upload.uploadCaptchaToken) {
       workspace.setError(
         "Please complete the human verification check below before uploading.",
@@ -218,6 +203,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   };
 
   const openDashboard = () => {
+    if (!workspace.isSignedIn) {
+      workspace.setAuthOpen(true);
+      return;
+    }
     session.setDoc(null);
     actions.clearSelection();
     workspace.setView("dashboard");

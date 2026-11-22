@@ -14,17 +14,25 @@ import {
 } from "./primitives";
 
 export function LandingSections() {
-  const { uploadLimits, captchaRequired } = useWorkspace();
+  const { isSignedIn, uploadLimits, captchaRequired, setAuthOpen } =
+    useWorkspace();
   const { upload, chooseFile } = useEditor();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const uploadDisabled = captchaRequired && !upload.uploadCaptchaToken;
-  const handleChoose = () => chooseFile(null, true);
+  const uploadDisabled =
+    isSignedIn && captchaRequired && !upload.uploadCaptchaToken;
+  const handleChoose = () => {
+    if (!isSignedIn) {
+      setAuthOpen(true);
+      return;
+    }
+    chooseFile(null, true);
+  };
 
   const faqRows: [string, string][] = [
     [
       "Do I need an account to edit a file?",
-      "No. You can drop a PDF or image, edit text, add a signature, and download your finished file right away. Sign up anytime to keep your folders, files, and signatures synced in your dashboard.",
+      "Yes — sign in free with Google or GitHub to upload PDFs or images, edit text, add signatures or stamps, and keep your folders synced in your dashboard.",
     ],
     [
       "Does it work on scanned documents and images?",
@@ -102,7 +110,7 @@ export function LandingSections() {
             </p>
             <div className="pt-2">
               <SecondaryButton onClick={handleChoose} disabled={uploadDisabled}>
-                Try with a file
+                {isSignedIn ? "Try with a file" : "Sign in to start"}
               </SecondaryButton>
             </div>
           </div>
@@ -182,10 +190,10 @@ export function LandingSections() {
           </h2>
           <div className="relative z-10 mt-8 flex flex-col items-center gap-3">
             <PrimaryCtaButton onClick={handleChoose} disabled={uploadDisabled}>
-              Choose a file
+              {isSignedIn ? "Choose a file" : "Sign in to start"}
             </PrimaryCtaButton>
             <span className="text-sm text-muted-foreground">
-              Free to try. No download required.
+              Free with Google or GitHub. No download required.
             </span>
           </div>
         </div>

@@ -140,7 +140,7 @@ export function LandingHeader() {
                   onClick={() => setAuthOpen(true)}
                   className="hidden sm:inline-flex"
                 >
-                  Sign up
+                  Sign in
                 </SecondaryButton>
               )}
 
@@ -213,7 +213,7 @@ export function LandingHeader() {
                   setAuthOpen(true);
                 }}
               >
-                Sign up
+                Sign in
               </PrimaryCtaButton>
             )}
           </div>

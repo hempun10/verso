@@ -8,10 +8,6 @@ import {
   useState,
 } from "react";
 import {
-  createFolder,
-  deleteAsset,
-  deleteDocument,
-  deleteFolder,
   devLogin,
   fetchAuthConfig,
   fetchCurrentUser,
@@ -20,8 +16,6 @@ import {
   listAssets,
   listDocuments,
   listFolders,
-  moveDocumentToFolder,
-  updateFolder,
 } from "@/api";
 import type { LegalTab } from "@/components/LegalDialog";
 import { updateUrlParams } from "@/features/editor/types";
@@ -40,7 +34,14 @@ import type {
   StorageUsage,
   UserInfo,
 } from "@/types";
+import {
+  hasOAuthCallbackParams,
+  isAuthenticatedUser,
+  isProtectedUrl,
+  resetToLandingUrl,
+} from "./authGuard";
 import type { WorkspaceContextValue } from "./types";
+import { useWorkspaceMutations } from "./useWorkspaceMutations";
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
@@ -81,12 +82,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const captchaRequired = Boolean(
     authConfig?.captcha_enabled && authConfig.turnstile_site_key,
   );
-  const isSignedIn = Boolean(
-    user &&
-      user.provider !== "guest" &&
-      user.id !== "guest" &&
-      !user.id.startsWith("gst_"),
-  );
+  const isSignedIn = isAuthenticatedUser(user);
 
   const savedSignatures = useMemo(
     () => assets.filter((a) => a.kind === "signature"),
@@ -122,26 +118,47 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       .then(setOverrideFonts)
       .catch(() => {});
 
+    const oauthCallback = hasOAuthCallbackParams();
+    const wantsProtected = isProtectedUrl();
+
     void (async () => {
+      let resolvedUser: UserInfo | null = null;
       try {
         const cfg = await fetchAuthConfig();
         setAuthConfig(cfg);
         if (cfg.mode === "appwrite") {
           const awUser = await restoreAppwriteSession(cfg);
-          setUser(awUser ?? (await fetchCurrentUser()));
+          resolvedUser = awUser ?? (await fetchCurrentUser());
         } else {
-          setUser(await fetchCurrentUser());
+          resolvedUser = await fetchCurrentUser();
         }
+        setUser(resolvedUser);
       } catch {
-        // Keep guest mode if auth endpoint unreachable.
+        // Keep unauthenticated state if auth endpoint is unreachable.
       } finally {
         setAuthLoading(false);
       }
 
+      const signedIn = isAuthenticatedUser(resolvedUser);
       const params = new URLSearchParams(window.location.search);
-      if (params.get("view") === "dashboard" && !params.get("doc")) {
+      const hasDoc = Boolean(params.get("doc"));
+
+      if (!signedIn) {
+        setView("landing");
+        setWorkspaceLoading(false);
+        if (wantsProtected) {
+          resetToLandingUrl();
+          setAuthOpen(true);
+        }
+        return;
+      }
+
+      if (hasDoc) return;
+      if (oauthCallback || wantsProtected) {
+        setView("dashboard");
+        updateUrlParams(null, null, "dashboard");
         await refreshWorkspace(true);
-      } else if (!params.get("doc")) {
+      } else {
         setWorkspaceLoading(false);
       }
     })();
@@ -189,85 +206,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     updateUrlParams(null, null, "landing");
   };
 
-  const handleCreateFolder = async (name: string, parentId: string | null) => {
-    setError(null);
-    try {
-      const created = await createFolder(name, parentId);
-      setFolders((prev) =>
-        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create folder.");
-    }
-  };
-
-  const handleRenameFolder = async (folderId: string, name: string) => {
-    setError(null);
-    try {
-      const updated = await updateFolder(folderId, { name });
-      setFolders((prev) =>
-        prev
-          .map((f) => (f.folder_id === folderId ? updated : f))
-          .sort((a, b) => a.name.localeCompare(b.name)),
-      );
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to rename folder.");
-    }
-  };
-
-  const handleDeleteFolder = async (folderId: string) => {
-    setError(null);
-    try {
-      const fallbackParent =
-        folders.find((f) => f.folder_id === folderId)?.parent_id ?? null;
-      await deleteFolder(folderId);
-      setFolders((prev) =>
-        prev
-          .filter((f) => f.folder_id !== folderId)
-          .map((f) =>
-            f.parent_id === folderId ? { ...f, parent_id: fallbackParent } : f,
-          ),
-      );
-      setSavedDocs((prev) =>
-        prev.map((d) =>
-          d.folder_id === folderId ? { ...d, folder_id: fallbackParent } : d,
-        ),
-      );
-      if (currentFolderId === folderId) setCurrentFolderId(fallbackParent);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete folder.");
-    }
-  };
-
-  const handleMoveDocToFolder = async (
-    docId: string,
-    folderId: string | null,
-  ) => {
-    setError(null);
-    try {
-      await moveDocumentToFolder(docId, folderId);
-      setSavedDocs((prev) =>
-        prev.map((d) =>
-          d.doc_id === docId ? { ...d, folder_id: folderId } : d,
-        ),
-      );
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to move document.");
-    }
-  };
-
-  const handleDeleteSavedDoc = async (docId: string) => {
-    await deleteDocument(docId);
-    setSavedDocs((prev) => prev.filter((d) => d.doc_id !== docId));
-    void fetchStorageUsage()
-      .then(setStorageUsage)
-      .catch(() => {});
-  };
-
-  const handleDeleteAsset = async (assetId: string) => {
-    await deleteAsset(assetId);
-    setAssets((prev) => prev.filter((a) => a.asset_id !== assetId));
-  };
+  const mutations = useWorkspaceMutations({
+    folders,
+    currentFolderId,
+    setFolders,
+    setSavedDocs,
+    setAssets,
+    setStorageUsage,
+    setCurrentFolderId,
+    setError,
+  });
 
   return (
     <WorkspaceContext
@@ -279,9 +227,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         captchaRequired, error, setError, clearError,
         authOpen, setAuthOpen, shortcutsOpen, setShortcutsOpen,
         legalTab, setLegalTab, refreshWorkspace, handleOAuthLogin,
-        handleDevLogin, handleSignOutWorkspace, handleCreateFolder,
-        handleRenameFolder, handleDeleteFolder, handleMoveDocToFolder,
-        handleDeleteSavedDoc, handleDeleteAsset,
+        handleDevLogin, handleSignOutWorkspace, ...mutations,
       }}
     >
       {children}

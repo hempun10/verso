@@ -10,6 +10,8 @@ import type { DocumentSummary, UploadLimits } from "@/types";
 import { updateUrlParams } from "./types";
 
 interface UseUploadFlowArgs {
+  isSignedIn: boolean;
+  onRequireAuth: () => void;
   uploadLimits: UploadLimits;
   captchaRequired: boolean;
   hasActiveDoc: boolean;
@@ -23,6 +25,8 @@ interface UseUploadFlowArgs {
 }
 
 export function useUploadFlow({
+  isSignedIn,
+  onRequireAuth,
   uploadLimits,
   captchaRequired,
   hasActiveDoc,
@@ -47,6 +51,10 @@ export function useUploadFlow({
     explicitCaptchaToken?: string | null,
     folderId?: string | null,
   ) => {
+    if (!isSignedIn) {
+      onRequireAuth();
+      return;
+    }
     onError(null);
     const validationError = await validateDocumentFileClient(
       file,
@@ -96,6 +104,10 @@ export function useUploadFlow({
     folderId?: string | null,
   ) => {
     if (files.length === 0) return;
+    if (!isSignedIn) {
+      onRequireAuth();
+      return;
+    }
     if (files.length === 1) {
       await handleUpload(files[0]!, undefined, folderId);
       return;

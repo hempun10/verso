@@ -93,8 +93,8 @@ export function AuthDialog({
             Sign in to {BRAND_NAME}
           </DialogTitle>
           <DialogDescription>
-            Sync your documents, folders, signatures, and stamps across devices
-            and collaborate via share links.
+            Sign in to access your workspace, edit PDFs &amp; images, and sync
+            your folders, signatures, and stamps.
           </DialogDescription>
         </DialogHeader>
 
