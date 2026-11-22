@@ -743,6 +743,11 @@ def create_app(
                 ):
                     return FileResponse(candidate)
                 return FileResponse(index_html)
+    else:
+
+        @app.get("/", include_in_schema=False)
+        def root_status():
+            return {"service": "verso-api", "status": "ok", "health": "/api/health"}
 
     return app
 

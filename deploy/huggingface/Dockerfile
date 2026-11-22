@@ -21,7 +21,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY backend/src ./src
 COPY backend/scripts ./scripts
-RUN uv sync --frozen --no-dev && mkdir -p /app/backend/data /tmp/.cache && chown -R 1000:1000 /app /tmp/.cache
+RUN uv sync --frozen --no-dev && mkdir -p /app/backend/data /app/backend/tmp/sessions /tmp/.cache && chown -R 1000:1000 /app /tmp/.cache
 
 USER user
 
