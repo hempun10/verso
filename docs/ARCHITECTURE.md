@@ -1,6 +1,6 @@
 # Architecture Overview
 
-`verso` splits document editing into clean, composable layers so both native vector PDFs and scanned/image files share one unified editor and export pipeline.
+`verso` splits document editing into composable layers so native vector PDFs, scanned PDFs, and raster images share one unified editor, persistence layer, and export pipeline.
 
 ```mermaid
 flowchart TD
@@ -17,18 +17,29 @@ flowchart TD
     Editor --> Export["Replay Edits on Immutable Original -> PDF or PNG"]
 ```
 
+## Production Topology
+
+```mermaid
+flowchart LR
+    Browser["Browser (tryverso.pages.dev)"] -->|Static SPA + _redirects| Pages["Cloudflare Pages"]
+    Browser -->|API + Turnstile + Bearer JWT| Lambda["AWS Lambda Container (FastAPI + Web Adapter)"]
+    Lambda -->|Auth JWT + TablesDB + Storage| Appwrite["Appwrite Cloud"]
+    Lambda -->|Siteverify| Turnstile["Cloudflare Turnstile"]
+```
+
 ## Core Invariants
 
 1. **Immutable Originals**: The uploaded PDF (or image-wrapped canonical PDF) is never mutated in place. Every preview and export replays `edits` + `overlays` cleanly from the original file so repeated edits never compound artifacts.
-2. **Per-Page Classification**: Mixed PDFs (e.g., native cover letter + scanned signed annex) are classified page-by-page in `backend/src/editpdf/classifier.py`.
+2. **Per-Page Classification**: Mixed PDFs (e.g. native cover letter + scanned signed annex) are classified page-by-page in `backend/src/editpdf/classifier.py`.
 3. **Dual Persistence Parity**: `WorkspaceRepository` in `backend/src/editpdf/storage.py` provides identical behavior on both `SqliteWorkspaceRepository` (zero-setup local/self-hosted) and `AppwriteWorkspaceRepository` (cloud TablesDB + Storage with cursor pagination).
+4. **Modular Frontend (< 300 LOC)**: Every `.ts`/`.tsx` file in `frontend/src/` is kept strictly under 300 lines with colocated local state, domain-scoped React 19 Contexts (zero prop drilling), and semantic Tailwind v4 `@theme inline` tokens in `frontend/src/styles.css`.
 
 ## Backend Modules (`backend/src/editpdf/`)
 
 | Module | Responsibility |
 | :--- | :--- |
-| `api.py` | Thin FastAPI HTTP layer, CORS, security headers, guest cookie middleware, rate limits, CAPTCHA, optional SPA static mount |
-| `service.py` | `SessionStore`: workspace orchestration, LRU RAM & disk cache eviction, OCR concurrency semaphore, quota enforcement |
+| `api.py` | Thin FastAPI HTTP layer, CORS, security headers, guest cookie middleware, rate limits, CAPTCHA, root health route, optional SPA static mount |
+| `service.py` | `SessionStore`: workspace orchestration, configurable `EDITPDF_SESSIONS_DIR`, LRU RAM & disk cache eviction, OCR concurrency semaphore, quota enforcement |
 | `classifier.py` | Per-page native vs. scanned classification |
 | `native_engine.py` | Vector span extraction, embedded font `cmap` glyph checks (`fontTools`), metric fallback, background-sampled redaction & re-insertion |
 | `scanned_engine.py` | `RapidOCR` word/line grouping, OpenCV Telea inpainting, ink color & scan-grain matching |
@@ -45,24 +56,21 @@ flowchart TD
 
 | Path | Responsibility |
 | :--- | :--- |
-| `App.tsx` | Top-level router (`landing` / `dashboard` / `editor`), undo/redo history, auto-save, batch upload queue, lazy-loaded modals |
-| `api.ts` | `apiFetch` wrapper with `credentials: "include"`, proactive 11-min Appwrite JWT refresh, 1-time 401 retry, `VITE_API_BASE_URL` |
-| `lib/auth.ts` | Appwrite OAuth2 token flow, silent JWT refresh timer, sign-out |
-| `lib/validation.ts` | Client-side magic-byte (`%PDF-`, PNG, JPEG, WebP) and file size validation before uploading any bytes |
-| `lib/runs.ts` | Partial-run inline rich-text range styling & DOM syncing |
-| `lib/stampRenderer.ts` | 60fps Canvas 2D government seal composer (circular/oval/box/raw, curved arc text, procedural rubber-ink distress) |
-| `components/LandingPage.tsx` | Marketing landing page with upload-first hero |
-| `components/DashboardPage.tsx` | Drive-style workspace: nested folders, drag-and-drop, right-click context menus, storage meter, shortcuts |
-| `components/OverlayLayer.tsx` | Interactive drag/resize/rotate/crop overlay canvas |
-| `components/StampStudioDialog.tsx` | Government Stamp Studio modal connecting `/api/stamps/extract` + `stampRenderer.ts` |
-| `components/ImageLibraryDialog.tsx` | Image upload, "Open as stamp" launcher, and reusable saved library |
-| `components/SignaturePadDialog.tsx` | Draw, type, and reuse saved signatures |
-| `components/AuthDialog.tsx` | Social sign-in (dev test accounts strictly tree-shaken out of production builds) |
-| `components/LegalDialog.tsx` | Privacy Policy & Terms of Service modal |
-| `components/ErrorBoundary.tsx` | Top-level React error boundary |
+| `App.tsx` | Thin auth-gated view router (`AppProviders` → `LandingPage` / protected `DashboardPage` / protected `EditorWorkspace`) |
+| `app/AppProviders.tsx` | Composes `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, global `EditorModals`, and `ServerWakeBanner` |
+| `api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`) | `apiFetch` with `credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, cold-start GET retry backoff, and `VITE_API_BASE_URL` |
+| `features/workspace/` | `WorkspaceContext`, `authGuard.ts` (protected route & OAuth callback guards), and `useWorkspaceMutations.ts` |
+| `features/editor/` | `EditorContext`, `EditorWorkspace`, `EditorTopbar`, `EditorCanvas`, `InlineTextEditor`, `EditorInspectors`, `EditorBottomBar`, `EditorModals`, `overlay-layer/`, and session/upload/action/shortcut hooks |
+| `features/dashboard/` | Feature-scoped `DashboardContext`, `DashboardSidebar`, `DashboardCanvas`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals` |
+| `features/landing/` | `LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `FeatureVisuals`, `primitives.tsx` |
+| `features/stamp/` & `lib/stamp/` | Feature-scoped `StampStudioContext` + 60fps Canvas 2D seal renderer (`seals.ts`, `distress.ts`, `primitives.ts`, `render.ts`) |
+| `features/signature/` | Draw, type, and reuse saved signatures |
+| `lib/` (`auth.ts`, `validation.ts`, `runs/`, `format.ts`, `canvas.ts`) | Appwrite OAuth2 token flow, client magic-byte & size validation, inline rich-text run model & DOM sync |
+| `components/ui/` & `styles.css` | shadcn/Radix primitives + semantic Tailwind v4 `@theme inline` tokens (zero raw hex classes) |
 
 ## Security Model
 
-- **Guest Isolation**: Anonymous users receive a signed `HttpOnly; SameSite=Lax` cookie (`verso_guest`) with a unique `gst_<random>` owner ID.
-- **Private Assets**: `GET /api/assets/{asset_id}/content` requires either owner credentials or a valid short-lived HMAC `?exp=&sig=` token.
-- **Production Guards**: `EDITPDF_ENV=production` refuses startup if `EDITPDF_ENABLE_DEV_AUTH=true`, `EDITPDF_AUTH_SECRET` is weak/default, or `EDITPDF_ALLOWED_ORIGINS` includes `*`.
+- **Protected Routes & Auth**: Dashboard and editor routes require authentication (`authGuard.ts`). Production uses Appwrite OAuth2 (Google / GitHub) with short-lived JWTs; local dev login is compiled out of production bundles and blocked by startup guards.
+- **Cross-Site Cookie Hardening**: Guest cookies (`verso_guest`) use HMAC signatures with `HttpOnly`, configurable `EDITPDF_COOKIE_SECURE` and `EDITPDF_COOKIE_SAMESITE` (`none` + `secure` for split-origin deploys).
+- **Private Assets**: `GET /api/assets/{asset_id}/content` requires owner credentials or a valid short-lived HMAC `?exp=&sig=` token.
+- **Production Startup Guards**: `EDITPDF_ENV=production` refuses startup if `EDITPDF_ENABLE_DEV_AUTH=true`, `EDITPDF_AUTH_SECRET` is weak/default, `EDITPDF_ALLOWED_ORIGINS` includes `*`, or `EDITPDF_COOKIE_SAMESITE=none` without `EDITPDF_COOKIE_SECURE=true`.

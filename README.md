@@ -1,8 +1,13 @@
 # verso
 
+[![CI](https://github.com/hempun10/verso/actions/workflows/ci.yml/badge.svg)](https://github.com/hempun10/verso/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **Edit text inside PDFs, scanned documents, and images in place — keeping original fonts, layouts, signatures, stamps, and Drive-style folders.**
 
-`verso` is an open-source, self-hostable document studio built with **React 19 + TypeScript + Tailwind CSS v4** and **Python 3.12 + FastAPI + PyMuPDF + OpenCV + RapidOCR**.
+**Live App**: [tryverso.pages.dev](https://tryverso.pages.dev)
+
+`verso` is an open-source, self-hostable document studio built with **React 19 + TypeScript + Tailwind CSS v4** (modular feature-first architecture) and **Python 3.12 + FastAPI + PyMuPDF + OpenCV + RapidOCR**.
 
 ---
 
@@ -16,20 +21,20 @@
   - Upload any logo, crest, or phone photo of a physical stamp — OpenCV removes the background (with flat-field illumination correction, engraved line-art mode, and GrabCut cutout), then compose circular, oval, or rectangular official seals with curved arc text and realistic rubber-ink grain at 60fps.
 - **Signatures, Whiteout & Image Overlays**
   - Draw or type signatures, cover sensitive details with rectangle/ellipse whiteouts, crop/rotate/resize image overlays, and reuse saved assets across documents.
-- **Drive-Style Dashboard & Sharing**
-  - Nested folders, multi-file drag-and-drop uploads (up to 10 files per batch), right-click context menus, keyboard shortcuts (`N`, `U`, `⌘K`, `G`, `R`, `⌫`), storage usage tracking, auto-saved sessions, and revocable share links.
+- **Protected Drive-Style Workspace & Sharing**
+  - Sign-in protected dashboard and editor routes (Google & GitHub OAuth via Appwrite Cloud, with local dev accounts in dev mode), nested folders, multi-file drag-and-drop uploads, right-click context menus, keyboard shortcuts (`N`, `U`, `⌘K`, `G`, `R`, `⌫`), storage usage tracking, auto-saved sessions, and revocable share links.
 - **Production-Ready Security**
-  - Pre-upload client & server magic-byte/size validation, per-browser signed `HttpOnly` guest cookies, HMAC-signed short-lived asset URLs, sliding-window rate limiting, optional Cloudflare Turnstile CAPTCHA, enforced storage quotas, bounded LRU caches, and security headers.
+  - Pre-upload client & server magic-byte/size validation, cross-site `HttpOnly` cookie hardening (`SameSite=None; Secure`), HMAC-signed short-lived asset URLs, sliding-window rate limiting, Cloudflare Turnstile CAPTCHA, enforced storage quotas, bounded LRU caches, and strict production startup guards.
 
 ---
 
-## Quick Start (Zero-Setup Local Mode)
+## Quick Start (Local Development)
 
-Runs out of the box with local SQLite + disk storage — no external database or cloud keys required.
+Runs out of the box with local SQLite + disk storage and local dev sign-in — no external database or cloud keys required.
 
 ### Prerequisites
 - **Python 3.12+** with [`uv`](https://docs.astral.sh/uv/)
-- **Node.js 20+** with [`pnpm`](https://pnpm.io/)
+- **Node.js 22+** with [`pnpm`](https://pnpm.io/)
 
 ### 1. Install dependencies
 ```bash
@@ -48,28 +53,32 @@ make dev-backend
 make dev-frontend
 ```
 
-Open **http://127.0.0.1:3003** in your browser.
+Open **http://127.0.0.1:3003** in your browser and sign in with a local dev account.
 
 ---
 
-## Self-Hosting & Free Cloud Deployment
+## Deployment & Self-Hosting
 
-- **Free Cloud Split Deploy (Cloudflare Pages + Hugging Face Spaces + Appwrite)**: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step $0 setup (`deploy/huggingface/Dockerfile` + `frontend/public/_redirects`).
-- **Single-Container Docker**: Build and run both frontend and backend together:
+- **Serverless Production Stack (Cloudflare Pages + AWS Lambda Container + Appwrite Cloud)**:
+  - Frontend deploys to Cloudflare Pages (`frontend/public/_redirects` for SPA routing) with automatic cold-start wake retries (`ServerWakeBanner`).
+  - Backend runs as a container image on **AWS Lambda** (`deploy/aws-lambda/Dockerfile` + AWS Lambda Web Adapter + Function URL) — **$0 compute when idle**, 2 GB RAM, persistent storage & OAuth via Appwrite Cloud, and Turnstile CAPTCHA.
+  - Full step-by-step setup guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+- **Single-Container Self-Hosting (Docker / EC2 / Coolify / VPS)**:
+  ```bash
+  docker compose up --build
+  ```
+  Visit **http://localhost:8000**. For production, set `EDITPDF_ENV=production`, a strong `EDITPDF_AUTH_SECRET` (>= 24 chars), `EDITPDF_ENABLE_DEV_AUTH=false`, and `EDITPDF_ALLOWED_ORIGINS=https://your-domain.com`.
 
-```bash
-docker compose up --build
-```
-
-Then visit **http://localhost:8000**.
-
-For production, set `EDITPDF_ENV=production`, a strong `EDITPDF_AUTH_SECRET` (>= 24 chars), `EDITPDF_ENABLE_DEV_AUTH=false`, and `EDITPDF_ALLOWED_ORIGINS=https://your-domain.com`.
+### CI/CD Workflows
+- `.github/workflows/ci.yml`: Runs backend `ruff`, `pyright`, `pytest` and frontend `typecheck`, `build`, and production bundle hygiene checks on every push & PR.
+- `.github/workflows/deploy-frontend.yml`: Builds and deploys `frontend/dist` to Cloudflare Pages on pushes to `frontend/**`.
+- `.github/workflows/deploy-backend.yml`: Builds `deploy/aws-lambda/Dockerfile`, pushes to Amazon ECR, and updates the AWS Lambda container on pushes to `backend/**`.
 
 ---
 
 ## Optional: Appwrite Cloud Setup (OAuth + Cloud Storage)
 
-To enable Google/GitHub OAuth and cloud persistence with [Appwrite](https://appwrite.io/):
+To enable Google/GitHub OAuth and persistent cloud storage with [Appwrite](https://appwrite.io/):
 
 1. Copy the environment templates:
    ```bash
@@ -77,7 +86,8 @@ To enable Google/GitHub OAuth and cloud persistence with [Appwrite](https://appw
    cp frontend/.env.example frontend/.env
    ```
 2. Fill in `APPWRITE_ENDPOINT`, `APPWRITE_PROJECT_ID`, and `APPWRITE_API_KEY` in `backend/.env`.
-3. Bootstrap the TablesDB tables, indexes, and Storage bucket automatically:
+3. Add your frontend hostname under **Appwrite Console → Overview → Platforms → Web** and enable Google/GitHub OAuth providers.
+4. Bootstrap the TablesDB tables, indexes, and Storage bucket automatically:
    ```bash
    cd backend && uv run python scripts/setup_appwrite.py
    ```
@@ -89,18 +99,21 @@ To enable Google/GitHub OAuth and cloud persistence with [Appwrite](https://appw
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `EDITPDF_ENV` | `development` | Set to `production` to enforce startup security guards & HSTS |
-| `EDITPDF_AUTH_SECRET` | dev default | **Required in prod (>=24 chars)**. Signs guest cookies & asset URLs |
+| `EDITPDF_AUTH_SECRET` | dev default | **Required in prod (>=24 chars)**. Signs cookies & short-lived asset URLs |
 | `EDITPDF_ENABLE_DEV_AUTH` | auto | Local dev test login; **must be `false` in production** |
 | `EDITPDF_ALLOWED_ORIGINS` | localhost | Comma-separated allowed CORS origins |
-| `EDITPDF_TRUST_PROXY_HEADERS` | `false` | Set `true` behind Cloudflare / reverse proxy for real client IPs |
-| `EDITPDF_MAX_PDF_BYTES` | `25000000` | Max uploaded PDF size in bytes (25 MB) |
+| `EDITPDF_TRUST_PROXY_HEADERS` | `false` | Set `true` behind Cloudflare / proxy for real client IPs |
+| `EDITPDF_COOKIE_SECURE` | auto | Set `true` in production HTTPS deployments |
+| `EDITPDF_COOKIE_SAMESITE` | `lax` | Set `none` (with `COOKIE_SECURE=true`) for cross-origin split deploys |
+| `EDITPDF_SESSIONS_DIR` | `backend/tmp/sessions` | Writable sessions/cache directory (set `/tmp/verso-sessions` on serverless) |
+| `EDITPDF_MAX_PDF_BYTES` | `25000000` | Max uploaded PDF size in bytes (use `5000000` on AWS Lambda Function URLs) |
 | `EDITPDF_MAX_PDF_PAGES` | `50` | Max pages per uploaded PDF |
 | `EDITPDF_MAX_IMAGE_BYTES` | `5000000` | Max image/stamp/signature size in bytes (5 MB) |
 | `EDITPDF_STORAGE_QUOTA_BYTES` | `2000000000` | Per-user storage quota (2 GB) |
 | `EDITPDF_RATE_LIMIT_ENABLED` | `true` | Toggle sliding-window API rate limiting |
 | `TURNSTILE_SITE_KEY` / `SECRET_KEY` | *(empty)* | Optional Cloudflare Turnstile CAPTCHA keys |
-| `APPWRITE_ENDPOINT` / `PROJECT_ID` / `API_KEY` | *(empty)* | Optional Appwrite Cloud persistence & OAuth |
-| `VITE_API_BASE_URL` | *(empty)* | Optional frontend API origin for split deploys |
+| `APPWRITE_ENDPOINT` / `PROJECT_ID` / `API_KEY` | *(empty)* | Appwrite Cloud persistence & Google/GitHub OAuth |
+| `VITE_API_BASE_URL` | *(empty)* | Frontend API base URL for split deploys (e.g. Lambda Function URL) |
 
 ---
 
@@ -120,6 +133,7 @@ Individual commands:
 
 ## Architecture & Contributing
 
+- **Deployment Guide**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - **Architecture Deep Dive**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Contributing Guide**: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **AI Agent Guidance & Skills**: [AGENTS.md](AGENTS.md) and `.agents/skills/`
