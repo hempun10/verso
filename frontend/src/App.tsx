@@ -2,10 +2,10 @@ import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { AppProviders } from "@/app/AppProviders";
 import { LandingPage } from "@/components/LandingPage";
-import { useEditor } from "@/features/editor/EditorContext";
-import { EditorWorkspace } from "@/features/editor/EditorWorkspace";
-import { isProtectedUrl } from "@/features/workspace/authGuard";
-import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { useEditor } from "@/features/editor/context/EditorContext";
+import { EditorWorkspace } from "@/features/editor/components/EditorWorkspace";
+import { isProtectedUrl } from "@/features/workspace/utils/authGuard";
+import { useWorkspace } from "@/features/workspace/context/WorkspaceContext";
 
 const DashboardPage = lazy(() =>
   import("@/components/DashboardPage").then((m) => ({

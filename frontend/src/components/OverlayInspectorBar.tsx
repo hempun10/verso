@@ -13,8 +13,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEditor } from "@/features/editor/EditorContext";
-import { ImageInspectorControls } from "@/features/editor/ImageInspectorControls";
+import { useEditor } from "@/features/editor/context/EditorContext";
+import { ImageInspectorControls } from "@/features/editor/components/ImageInspectorControls";
 
 const WHITEOUT_SWATCHES = [
   { hex: "#ffffff", label: "Pure White" },

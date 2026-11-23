@@ -57,14 +57,15 @@ flowchart LR
 | Path | Responsibility |
 | :--- | :--- |
 | `App.tsx` | Thin auth-gated view router (`AppProviders` → `LandingPage` / protected `DashboardPage` / protected `EditorWorkspace`) |
-| `app/AppProviders.tsx` | Composes `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, global `EditorModals`, and `ServerWakeBanner` |
-| `api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`) | `apiFetch` with `credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, cold-start GET retry backoff, and `VITE_API_BASE_URL` |
-| `features/workspace/` | `WorkspaceContext`, `authGuard.ts` (protected route & OAuth callback guards), and `useWorkspaceMutations.ts` |
-| `features/editor/` | `EditorContext`, `EditorWorkspace`, `EditorTopbar`, `EditorCanvas`, `InlineTextEditor`, `EditorInspectors`, `EditorBottomBar`, `EditorModals`, `overlay-layer/`, and session/upload/action/shortcut hooks |
-| `features/dashboard/` | Feature-scoped `DashboardContext`, `DashboardSidebar`, `DashboardCanvas`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals` |
-| `features/landing/` | `LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `FeatureVisuals`, `primitives.tsx` |
-| `features/stamp/` & `lib/stamp/` | Feature-scoped `StampStudioContext` + 60fps Canvas 2D seal renderer (`seals.ts`, `distress.ts`, `primitives.ts`, `render.ts`) |
-| `features/signature/` | Draw, type, and reuse saved signatures |
+| `app/AppProviders.tsx` | Composes `QueryClientProvider` (`@tanstack/react-query`), `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, global `EditorModals`, and `ServerWakeBanner` |
+| `api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`) | `apiFetch` with `credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, cold-start GET retry backoff, AbortSignal support, and `VITE_API_BASE_URL` |
+| `lib/queryClient.ts` | Shared TanStack Query `QueryClient` and typed `queryKeys` factory |
+| `features/workspace/` | `context/WorkspaceContext`, `hooks/useWorkspaceQueries` + `useWorkspaceMutations` (TanStack Query), `utils/authGuard` |
+| `features/editor/` | `context/EditorContext`, `hooks/` (TanStack Query `usePageLoader`, `useDocumentSession`, `useUploadFlow`, `useAssetPlacement`, plus actions & shortcuts), `components/` (`EditorWorkspace`, `EditorTopbar`, `EditorCanvas`, `InlineTextEditor`, `EditorInspectors`, `EditorModals`, `overlay-layer/`) |
+| `features/dashboard/` | `context/DashboardContext`, `components/` (`DashboardSidebar`, `DashboardHeader`, `DashboardCanvas`, `FolderGrid`, `FileViews`, `DashboardContextMenu`, `DashboardModals`), `utils/selectors` |
+| `features/landing/` | `components/` (`LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `FeatureVisuals`, `primitives`) |
+| `features/stamp/` & `lib/stamp/` | `context/StampStudioContext`, `hooks/useStampExtraction` (TanStack Query), `components/` + 60fps Canvas 2D seal renderer |
+| `features/signature/` | `components/SignatureTabs`, `utils/renderSignature` |
 | `lib/` (`auth.ts`, `validation.ts`, `runs/`, `format.ts`, `canvas.ts`) | Appwrite OAuth2 token flow, client magic-byte & size validation, inline rich-text run model & DOM sync |
 | `components/ui/` & `styles.css` | shadcn/Radix primitives + semantic Tailwind v4 `@theme inline` tokens (zero raw hex classes) |
 

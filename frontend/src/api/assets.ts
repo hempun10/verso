@@ -28,6 +28,14 @@ export async function deleteAsset(assetId: string) {
   await ensureOk(await apiFetch(`/api/assets/${assetId}`, { method: "DELETE" }));
 }
 
+export async function fetchAssetBlob(
+  url: string,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  const res = await ensureOk(await apiFetch(url, { signal }));
+  return await res.blob();
+}
+
 export async function extractStampMask(
   file: Blob,
   options: {

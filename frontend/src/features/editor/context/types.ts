@@ -1,0 +1,40 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { AssetItem } from "@/types";
+import type { EditMap, StampSeed } from "../types";
+import type { useAssetPlacement } from "../hooks/useAssetPlacement";
+import type { useDocumentSession } from "../hooks/useDocumentSession";
+import type { useEditorActions } from "../hooks/useEditorActions";
+import type { useUploadFlow } from "../hooks/useUploadFlow";
+
+export interface EditorContextValue {
+  editsMap: EditMap;
+  canUndo: boolean;
+  canRedo: boolean;
+  undo: () => void;
+  redo: () => void;
+  zoom: number;
+  setZoom: Dispatch<SetStateAction<number>>;
+  showBoxes: boolean;
+  setShowBoxes: Dispatch<SetStateAction<boolean>>;
+  docsOpen: boolean;
+  setDocsOpen: (open: boolean) => void;
+  shareOpen: boolean;
+  setShareOpen: (open: boolean) => void;
+  signOpen: boolean;
+  setSignOpen: (open: boolean) => void;
+  imageOpen: boolean;
+  setImageOpen: (open: boolean) => void;
+  stampOpen: boolean;
+  setStampOpen: (open: boolean) => void;
+  stampSeed: StampSeed;
+  openStampStudio: (opts?: { file?: File; asset?: AssetItem }) => void;
+  session: ReturnType<typeof useDocumentSession>;
+  actions: ReturnType<typeof useEditorActions>;
+  upload: ReturnType<typeof useUploadFlow>;
+  assetsPlacement: ReturnType<typeof useAssetPlacement>;
+  chooseFile: (folderId?: string | null, requireCaptchaCheck?: boolean) => void;
+  openDashboard: () => void;
+  goToLanding: () => void;
+  signOut: () => Promise<void>;
+  deleteDocument: (docId: string) => Promise<void>;
+}

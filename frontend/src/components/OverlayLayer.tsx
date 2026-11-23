@@ -1,18 +1,18 @@
 import { useRef, useState } from "react";
 import type React from "react";
-import { useEditor } from "@/features/editor/EditorContext";
-import { CropModeOverlay } from "@/features/editor/overlay-layer/CropModeOverlay";
+import { useEditor } from "@/features/editor/context/EditorContext";
+import { CropModeOverlay } from "@/features/editor/components/overlay-layer/CropModeOverlay";
 import {
   type CropBox,
   clampPt,
   computeCroppedPatch,
   getFullImageGeometry,
-} from "@/features/editor/overlay-layer/geometry";
-import { OverlayItem } from "@/features/editor/overlay-layer/OverlayItem";
+} from "@/features/editor/components/overlay-layer/geometry";
+import { OverlayItem } from "@/features/editor/components/overlay-layer/OverlayItem";
 import {
   trackPointerDrag,
   useOverlayInteractions,
-} from "@/features/editor/overlay-layer/useOverlayInteractions";
+} from "@/features/editor/components/overlay-layer/useOverlayInteractions";
 
 export { computeCroppedPatch, getFullImageGeometry, type CropBox };
 

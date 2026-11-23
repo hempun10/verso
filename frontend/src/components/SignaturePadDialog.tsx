@@ -16,8 +16,8 @@ import {
   SavedSignaturesTab,
   SIGNATURE_TYPE_FONTS,
   TypeSignatureTab,
-} from "@/features/signature/SignatureTabs";
-import { renderTypedSignaturePng } from "@/features/signature/renderSignature";
+} from "@/features/signature/components/SignatureTabs";
+import { renderTypedSignaturePng } from "@/features/signature/utils/renderSignature";
 import { cropCanvasToTrimmedPng } from "@/lib/canvas";
 import type { AssetItem } from "@/types";
 

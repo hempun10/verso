@@ -13,8 +13,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEditor } from "@/features/editor/EditorContext";
-import { TextStyleControls } from "@/features/editor/TextStyleControls";
+import { useEditor } from "@/features/editor/context/EditorContext";
+import { TextStyleControls } from "@/features/editor/components/TextStyleControls";
 
 const TEXT_SWATCHES = [
   { hex: "#000000" },

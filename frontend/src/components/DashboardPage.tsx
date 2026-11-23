@@ -1,15 +1,15 @@
 import { AlertBanner } from "@/components/ui/alert-banner";
 import { FileDropOverlay } from "@/components/ui/file-drop-overlay";
-import { DashboardCanvas } from "@/features/dashboard/DashboardCanvas";
+import { DashboardCanvas } from "@/features/dashboard/components/DashboardCanvas";
 import {
   DashboardProvider,
   useDashboard,
-} from "@/features/dashboard/DashboardContext";
-import { DashboardContextMenu } from "@/features/dashboard/DashboardContextMenu";
-import { DashboardHeader } from "@/features/dashboard/DashboardHeader";
-import { DashboardModals } from "@/features/dashboard/DashboardModals";
-import { DashboardSidebar } from "@/features/dashboard/DashboardSidebar";
-import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+} from "@/features/dashboard/context/DashboardContext";
+import { DashboardContextMenu } from "@/features/dashboard/components/DashboardContextMenu";
+import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
+import { DashboardModals } from "@/features/dashboard/components/DashboardModals";
+import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
+import { useWorkspace } from "@/features/workspace/context/WorkspaceContext";
 import { formatFileSize, MAX_BATCH_UPLOAD_FILES } from "@/lib/validation";
 
 function DashboardShell() {

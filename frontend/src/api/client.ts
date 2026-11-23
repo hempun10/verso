@@ -73,6 +73,7 @@ export async function apiFetch(
     method?: string;
     headers?: Record<string, string>;
     body?: BodyInit | null;
+    signal?: AbortSignal;
     skipAuth?: boolean;
   } = {},
 ): Promise<Response> {
@@ -111,6 +112,9 @@ export async function apiFetch(
       if (res.ok) setServerWaking(false);
       break;
     } catch (err: unknown) {
+      if (init.signal?.aborted) {
+        throw err;
+      }
       lastErr = err;
       if (canRetryColdStart && attempt < maxAttempts - 1) {
         setServerWaking(true);

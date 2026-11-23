@@ -7,12 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { StampControlsPane } from "@/features/stamp/StampControlsPane";
-import { StampPreviewPane } from "@/features/stamp/StampPreviewPane";
+import { StampControlsPane } from "@/features/stamp/components/StampControlsPane";
+import { StampPreviewPane } from "@/features/stamp/components/StampPreviewPane";
 import {
   StampStudioProvider,
   useStampStudio,
-} from "@/features/stamp/StampStudioContext";
+} from "@/features/stamp/context/StampStudioContext";
 import { DEFAULT_UPLOAD_LIMITS } from "@/lib/validation";
 import type { UploadLimits } from "@/types";
 

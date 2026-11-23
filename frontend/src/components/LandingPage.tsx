@@ -1,10 +1,10 @@
 import { AlertBanner } from "@/components/ui/alert-banner";
-import { LandingFooter } from "@/features/landing/LandingFooter";
-import { LandingHeader } from "@/features/landing/LandingHeader";
-import { LandingHero } from "@/features/landing/LandingHero";
-import { LandingSections } from "@/features/landing/LandingSections";
-import { PageFrame } from "@/features/landing/primitives";
-import { useWorkspace } from "@/features/workspace/WorkspaceContext";
+import { LandingFooter } from "@/features/landing/components/LandingFooter";
+import { LandingHeader } from "@/features/landing/components/LandingHeader";
+import { LandingHero } from "@/features/landing/components/LandingHero";
+import { LandingSections } from "@/features/landing/components/LandingSections";
+import { PageFrame } from "@/features/landing/components/primitives";
+import { useWorkspace } from "@/features/workspace/context/WorkspaceContext";
 
 export function LandingPage() {
   const { error, clearError } = useWorkspace();
