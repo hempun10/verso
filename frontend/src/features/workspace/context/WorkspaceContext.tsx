@@ -98,8 +98,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           staleTime: 5 * 60_000,
         });
         if (cfg.mode === "appwrite") {
-          const awUser = await restoreAppwriteSession(cfg);
-          resolvedUser = awUser ?? (await fetchCurrentUser());
+          resolvedUser = await restoreAppwriteSession(cfg);
         } else {
           resolvedUser = await fetchCurrentUser();
         }

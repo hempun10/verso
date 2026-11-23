@@ -32,8 +32,9 @@ export function useWorkspaceQueries(isSignedIn: boolean) {
   const overrideFontsQuery = useQuery({
     queryKey: queryKeys.overrideFonts,
     queryFn: fetchOverrideFonts,
+    enabled: isSignedIn,
     staleTime: Infinity,
-    initialData: DEFAULT_OVERRIDE_FONTS,
+    placeholderData: DEFAULT_OVERRIDE_FONTS,
   });
 
   const docsQuery = useQuery({

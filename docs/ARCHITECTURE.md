@@ -57,8 +57,8 @@ flowchart LR
 | Path | Responsibility |
 | :--- | :--- |
 | `App.tsx` | Thin auth-gated view router (`AppProviders` → `LandingPage` / protected `DashboardPage` / protected `EditorWorkspace`) |
-| `app/AppProviders.tsx` | Composes `QueryClientProvider` (`@tanstack/react-query`), `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, global `EditorModals`, and `ServerWakeBanner` |
-| `api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`) | `apiFetch` with `credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, cold-start GET retry backoff, AbortSignal support, and `VITE_API_BASE_URL` |
+| `app/AppProviders.tsx` | Composes `QueryClientProvider` (`@tanstack/react-query`), `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, and global `EditorModals` |
+| `api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`) | `apiFetch` with `credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, AbortSignal support, and `VITE_API_BASE_URL` |
 | `lib/queryClient.ts` | Shared TanStack Query `QueryClient` and typed `queryKeys` factory |
 | `features/workspace/` | `context/WorkspaceContext`, `hooks/useWorkspaceQueries` + `useWorkspaceMutations` (TanStack Query), `utils/authGuard` |
 | `features/editor/` | `context/EditorContext`, `hooks/` (TanStack Query `usePageLoader`, `useDocumentSession`, `useUploadFlow`, `useAssetPlacement`, plus actions & shortcuts), `components/` (`EditorWorkspace`, `EditorTopbar`, `EditorCanvas`, `InlineTextEditor`, `EditorInspectors`, `EditorModals`, `overlay-layer/`) |

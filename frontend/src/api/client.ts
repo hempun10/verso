@@ -6,33 +6,6 @@ import {
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
 
-// Transient HTTP statuses commonly returned while a sleeping container boots (up to ~65s).
-const COLD_START_STATUSES = new Set([502, 503, 504]);
-const COLD_START_BACKOFF_MS = [2000, 3000, 5000, 5000, 8000, 10000, 10000, 10000, 10000];
-
-type WakeListener = (waking: boolean) => void;
-const wakeListeners = new Set<WakeListener>();
-let serverWaking = false;
-
-function setServerWaking(next: boolean) {
-  if (serverWaking === next) return;
-  serverWaking = next;
-  for (const listener of wakeListeners) listener(next);
-}
-
-/** Subscribe to backend cold-start wake state (used by ServerWakeBanner). */
-export function subscribeServerWaking(listener: WakeListener): () => void {
-  wakeListeners.add(listener);
-  listener(serverWaking);
-  return () => {
-    wakeListeners.delete(listener);
-  };
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
 /** Resolve a relative API path against VITE_API_BASE_URL (or same-origin when unset). */
 export function apiUrl(path: string): string {
   if (!path) return "";
@@ -62,10 +35,9 @@ export function withShareToken(
 
 /**
  * Authenticated fetch wrapper:
- * - Includes credentials so isolated per-browser guest cookies work cleanly
+ * - Includes credentials so isolated cookies work cleanly
  * - Proactively refreshes Appwrite JWTs before their 15-minute expiry
  * - Retries once after forcing a JWT refresh if the server returns 401
- * - Gracefully retries idempotent GET requests during container cold starts (502/503/504)
  */
 export async function apiFetch(
   path: string,
@@ -79,8 +51,6 @@ export async function apiFetch(
 ): Promise<Response> {
   const url = apiUrl(path);
   const { skipAuth = false, headers: extraHeaders, ...rest } = init;
-  const method = (rest.method ?? "GET").toUpperCase();
-  const canRetryColdStart = method === "GET" || method === "HEAD";
 
   if (!skipAuth && isAppwriteSessionActive()) {
     await refreshAppwriteJwt(false);
@@ -93,44 +63,7 @@ export async function apiFetch(
       headers: skipAuth ? extraHeaders : authHeaders(extraHeaders),
     });
 
-  let res: Response | null = null;
-  let lastErr: unknown = null;
-  const maxAttempts = canRetryColdStart ? COLD_START_BACKOFF_MS.length + 1 : 1;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      res = await doFetch();
-      if (
-        canRetryColdStart &&
-        COLD_START_STATUSES.has(res.status) &&
-        attempt < maxAttempts - 1
-      ) {
-        setServerWaking(true);
-        await sleep(COLD_START_BACKOFF_MS[attempt]!);
-        continue;
-      }
-      if (res.ok) setServerWaking(false);
-      break;
-    } catch (err: unknown) {
-      if (init.signal?.aborted) {
-        throw err;
-      }
-      lastErr = err;
-      if (canRetryColdStart && attempt < maxAttempts - 1) {
-        setServerWaking(true);
-        await sleep(COLD_START_BACKOFF_MS[attempt]!);
-        continue;
-      }
-      setServerWaking(false);
-      throw err;
-    }
-  }
-
-  if (!res) {
-    setServerWaking(false);
-    throw lastErr instanceof Error ? lastErr : new Error("Server unreachable.");
-  }
-
+  let res = await doFetch();
   if (res.status === 401 && !skipAuth && isAppwriteSessionActive()) {
     const refreshed = await refreshAppwriteJwt(true);
     if (refreshed) {
@@ -145,9 +78,7 @@ export async function ensureOk(res: Response): Promise<Response> {
   let detail =
     res.status === 429
       ? "Too many requests. Please wait a moment and try again."
-      : COLD_START_STATUSES.has(res.status)
-        ? "Document server is starting up. Please try again in a few seconds."
-        : `Request failed (${res.status})`;
+      : `Request failed (${res.status})`;
   try {
     const body = (await res.json()) as { detail?: string };
     if (body.detail) detail = body.detail;

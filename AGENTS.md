@@ -20,8 +20,8 @@ This file gives AI coding assistants the architecture map, commands, invariants,
   - `tests/`: Pytest suite covering engines, overlays, folders, images, stamps, security, and production hardening
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui (`pnpm`) — every `.ts`/`.tsx` module is kept **strictly under 300 LOC** using a Bulletproof React feature-first architecture with colocated local state and domain Contexts (zero prop drilling):
   - `src/App.tsx`: Thin view router (`AppProviders` → `EditorWorkspace` / `DashboardPage` / `LandingPage`)
-  - `src/app/AppProviders.tsx`: Composes `QueryClientProvider` (`@tanstack/react-query`), `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, `EditorModals`, and `ServerWakeBanner`
-  - `src/api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`, barrel `src/api.ts`): `apiFetch` wrapper (`credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, cold-start backoff, `VITE_API_BASE_URL`)
+  - `src/app/AppProviders.tsx`: Composes `QueryClientProvider` (`@tanstack/react-query`), `TooltipProvider`, `WorkspaceProvider`, `EditorProvider`, and `EditorModals`
+  - `src/api/` (`client.ts`, `auth.ts`, `documents.ts`, `folders.ts`, `assets.ts`, barrel `src/api.ts`): `apiFetch` wrapper (`credentials: "include"`, 11-min JWT auto-refresh, 401 single retry, `VITE_API_BASE_URL`)
   - `src/features/` — Responsibility-organized feature folders (`components/`, `context/`, `hooks/`, `utils/`, `types.ts`, `index.ts`):
     - `features/workspace/`: `context/WorkspaceContext`, `hooks/useWorkspaceQueries` + `useWorkspaceMutations` (TanStack Query), `utils/authGuard`, `types.ts`
     - `features/editor/`: `context/EditorContext` + `types.ts`, `hooks/` (`useDocumentSession`, `usePageLoader`, `useUploadFlow`, `useAssetPlacement`, `useEditorActions`, `useOverlayActions`, `useEditorShortcuts`), `components/` (`EditorWorkspace`, `EditorTopbar`, `EditorDocMenu`, `EditorToolGroup`, `EditorAccountMenu`, `EditorInspectors`, `EditorCanvas`, `InlineTextEditor`, `EditorBottomBar`, `EditorModals`, `TextStyleControls`, `ImageInspectorControls`, `overlay-layer/`), `types.ts`

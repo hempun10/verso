@@ -60,7 +60,7 @@ Open **http://127.0.0.1:3003** in your browser and sign in with a local dev acco
 ## Deployment & Self-Hosting
 
 - **Serverless Production Stack (Cloudflare Pages + AWS Lambda Container + Appwrite Cloud)**:
-  - Frontend deploys to Cloudflare Pages (`frontend/public/_redirects` for SPA routing) with automatic cold-start wake retries (`ServerWakeBanner`).
+  - Frontend deploys to Cloudflare Pages (`frontend/public/_redirects` for SPA routing) with TanStack Query caching.
   - Backend runs as a container image on **AWS Lambda** (`deploy/aws-lambda/Dockerfile` + AWS Lambda Web Adapter + Function URL) — **$0 compute when idle**, 2 GB RAM, persistent storage & OAuth via Appwrite Cloud, and Turnstile CAPTCHA.
   - Full step-by-step setup guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 - **Single-Container Self-Hosting (Docker / EC2 / Coolify / VPS)**:
