@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Prepare browser-side PP-OCRv4 ONNX models, dictionary, and ONNX Runtime WASM assets.
+"""Prepare browser-side PP-OCRv4 ONNX models and character dictionary.
 
-Copies the exact PP-OCRv4 ONNX models bundled in `rapidocr-onnxruntime` and the single-threaded
-SIMD WASM runtime from `frontend/node_modules/onnxruntime-web/dist/` into gitignored
-`frontend/public/models/` so both local dev (`pnpm dev`) and Cloudflare Pages serve them on the
-same origin with immutable Cache-Control headers.
+Copies the exact PP-OCRv4 ONNX models bundled in `rapidocr-onnxruntime` and extracts
+the embedded character dictionary into gitignored `frontend/public/models/ocr/` so both
+local dev (`pnpm dev`) and Cloudflare Pages serve them on the same origin with immutable
+Cache-Control headers.
 """
 
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import shutil
 import sys
@@ -34,14 +35,11 @@ def _sha256(path: Path) -> str:
 
 
 def _find_rapidocr_models_dir() -> Path:
-    try:
-        import rapidocr_onnxruntime  # type: ignore[import-untyped]
-
-        candidate = Path(rapidocr_onnxruntime.__file__).resolve().parent / "models"
+    spec = importlib.util.find_spec("rapidocr_onnxruntime")
+    if spec is not None and spec.origin is not None:
+        candidate = Path(spec.origin).resolve().parent / "models"
         if candidate.is_dir():
             return candidate
-    except ImportError:
-        pass
 
     venv_site = sorted((ROOT / "backend" / ".venv" / "lib").glob("python*/site-packages"))
     for sp in venv_site:
