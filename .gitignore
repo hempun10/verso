@@ -19,6 +19,7 @@ Thumbs.db
 .pnpm-store/
 frontend/node_modules/
 frontend/dist/
+frontend/public/models/
 frontend/tsconfig.tsbuildinfo
 
 # Python virtualenvs, caches & local runtime data

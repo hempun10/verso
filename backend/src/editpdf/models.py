@@ -74,6 +74,7 @@ class TextEdit(BaseModel):
     strikethrough: bool = False
     highlight_hex: str | None = None
     runs: list[TextRun] | None = None
+    source_block: TextBlock | None = None
 
 
 class WhiteoutOverlay(BaseModel):

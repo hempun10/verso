@@ -9,6 +9,12 @@ export default defineConfig({
       "@": new URL("./src", import.meta.url).pathname,
     },
   },
+  optimizeDeps: {
+    exclude: ["onnxruntime-web"],
+  },
+  worker: {
+    format: "es",
+  },
   server: {
     port: 3003,
     proxy: {

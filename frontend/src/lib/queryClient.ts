@@ -25,8 +25,19 @@ export const queryKeys = {
   documentsRoot: ["documents"] as const,
   documentDetail: (docId: string, shareToken?: string | null) =>
     ["documents", "detail", docId, shareToken ?? ""] as const,
-  pageBlocks: (docId: string, pageIndex: number, shareToken?: string | null) =>
-    ["documents", "blocks", docId, pageIndex, shareToken ?? ""] as const,
+  pageBlocks: (
+    docId: string,
+    pageIndex: number,
+    shareToken?: string | null,
+    ocrMode: "native" | "local" | "cloud" = "native",
+  ) =>
+    ["documents", "blocks", docId, pageIndex, shareToken ?? "", ocrMode] as const,
+  pageImage: (
+    docId: string,
+    pageIndex: number,
+    dpi: number,
+    shareToken?: string | null,
+  ) => ["documents", "image", docId, pageIndex, dpi, shareToken ?? ""] as const,
   pagePreview: (
     docId: string,
     pageIndex: number,

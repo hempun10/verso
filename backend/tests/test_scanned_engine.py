@@ -200,3 +200,43 @@ def test_mixed_native_and_scanned_document_export(tmp_path: Path):
         assert "Cover Summary Final" in str(out_doc[0].get_text()).replace("\u00a0", " ")
         out_scan_blocks = extract_scanned_blocks(out_doc[1], 1)
         assert "7777" in " ".join(b.text for b in out_scan_blocks)
+
+
+def test_scanned_preview_and_export_skip_server_ocr_with_source_block(
+    tmp_path: Path, monkeypatch
+):
+    """When client-side OCR supplies source_block, preview and export skip server RapidOCR."""
+    import editpdf.scanned_engine as scanned_mod
+
+    scan_bytes = _make_synthetic_scanned_pdf()
+    with pymupdf.open(stream=scan_bytes, filetype="pdf") as doc:
+        blocks = extract_scanned_blocks(doc[0], 0)
+    amount_block = next(b for b in blocks if "5000" in b.text)
+
+    store = SessionStore(root_dir=tmp_path)
+    summary = store.create("scan.pdf", scan_bytes)
+
+    def _fail_if_called():
+        raise AssertionError("Server RapidOCR should not be invoked when source_block is provided")
+
+    monkeypatch.setattr(scanned_mod, "_get_ocr", _fail_if_called)
+
+    client_edit = TextEdit(
+        block_id=amount_block.id,
+        new_text="CONTRACT AMOUNT 6543",
+        source_block=amount_block,
+    )
+
+    preview_png = store.render_page_png(summary.doc_id, 0, edits=[client_edit], dpi=150)
+    assert preview_png.startswith(b"\x89PNG\r\n\x1a\n")
+
+    exported_pdf = store.export_pdf(summary.doc_id, [client_edit])
+    assert exported_pdf.startswith(b"%PDF")
+
+    # Restore OCR to verify the rendered text inside the exported PDF.
+    monkeypatch.undo()
+    with pymupdf.open(stream=exported_pdf, filetype="pdf") as out_doc:
+        out_blocks = extract_scanned_blocks(out_doc[0], 0)
+        joined = " ".join(b.text for b in out_blocks).upper()
+        assert "6543" in joined
+        assert "5000" not in joined

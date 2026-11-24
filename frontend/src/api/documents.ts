@@ -110,6 +110,25 @@ export async function fetchPageBlocks(
   return (await res.json()) as TextBlock[];
 }
 
+export async function fetchPageImageBlob(
+  docId: string,
+  pageIndex: number,
+  dpi = 200,
+  shareToken?: string | null,
+  signal?: AbortSignal,
+) {
+  const res = await ensureOk(
+    await apiFetch(
+      withShareToken(
+        `/api/documents/${docId}/pages/${pageIndex}/image?dpi=${dpi}`,
+        shareToken,
+      ),
+      { signal },
+    ),
+  );
+  return await res.blob();
+}
+
 export async function fetchPagePreview(
   docId: string,
   pageIndex: number,

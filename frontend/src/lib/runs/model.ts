@@ -137,9 +137,16 @@ export function runsToEdit(
 ): TextEdit | null {
   const normalized = normalizeRuns(rawRuns);
   const newText = runsToPlainText(normalized);
+  const sourceBlock = block.kind === "scanned" ? block : undefined;
 
   if (normalized.length === 0) {
-    return block.text === "" ? null : { block_id: block.id, new_text: "" };
+    return block.text === ""
+      ? null
+      : {
+          block_id: block.id,
+          new_text: "",
+          ...(sourceBlock ? { source_block: sourceBlock } : {}),
+        };
   }
 
   if (normalized.length === 1) {
@@ -148,10 +155,21 @@ export function runsToEdit(
     if (newText === block.text && !hasEffectiveStyleOverride(block, style)) {
       return null;
     }
-    return { block_id: block.id, new_text: newText, ...style, runs: null };
+    return {
+      block_id: block.id,
+      new_text: newText,
+      ...style,
+      runs: null,
+      ...(sourceBlock ? { source_block: sourceBlock } : {}),
+    };
   }
 
-  return { block_id: block.id, new_text: newText, runs: normalized };
+  return {
+    block_id: block.id,
+    new_text: newText,
+    runs: normalized,
+    ...(sourceBlock ? { source_block: sourceBlock } : {}),
+  };
 }
 
 function resolveRangeBounds(

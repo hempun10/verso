@@ -59,6 +59,7 @@ export interface TextEdit extends TextRunStyle {
   block_id: string;
   new_text: string;
   runs?: TextRun[] | null;
+  source_block?: TextBlock | null;
 }
 
 export type WhiteoutShape = "rect" | "ellipse";

@@ -703,6 +703,51 @@ class SessionStore:
         entry.blocks_cache[page_index] = blocks
         return blocks
 
+    def _resolve_blocks_for_edits(
+        self,
+        doc_id: str,
+        page_info: PageInfo,
+        edits: list[TextEdit],
+        *,
+        user: UserInfo,
+        share_token: str | None,
+    ) -> tuple[list[TextBlock], list[TextEdit]]:
+        """Resolve matching TextBlocks for a page's edits, skipping server OCR when possible."""
+        idx = page_info.page_index
+        prefix = f"p{idx}_"
+        candidates = [
+            e
+            for e in edits
+            if (e.source_block is not None and e.source_block.page_index == idx)
+            or (e.source_block is None and e.block_id.startswith(prefix))
+        ]
+        if not candidates:
+            return [], []
+
+        if page_info.kind == "scanned":
+            client_blocks: dict[str, TextBlock] = {}
+            missing_source = False
+            for edit in candidates:
+                sb = edit.source_block
+                if sb is not None and sb.page_index == idx and sb.id == edit.block_id:
+                    client_blocks[sb.id] = sb
+                else:
+                    missing_source = True
+            if not missing_source and client_blocks:
+                return list(client_blocks.values()), candidates
+            server_blocks = self.get_page_blocks(
+                doc_id, idx, user=user, share_token=share_token
+            )
+            merged = {b.id: b for b in server_blocks}
+            merged.update(client_blocks)
+            matched = [e for e in candidates if e.block_id in merged]
+            return list(merged.values()), matched
+
+        blocks = self.get_page_blocks(doc_id, idx, user=user, share_token=share_token)
+        block_ids = {b.id for b in blocks}
+        matched = [e for e in candidates if e.block_id in block_ids]
+        return blocks, matched
+
     def render_page_png(
         self,
         doc_id: str,
@@ -718,17 +763,23 @@ class SessionStore:
         if page_index < 0 or page_index >= len(entry.pages):
             raise IndexError(f"Page index {page_index} out of range")
 
-        blocks = (
-            self.get_page_blocks(doc_id, page_index, user=user, share_token=share_token)
-            if edits
-            else []
-        )
+        page_info = entry.pages[page_index]
+        blocks: list[TextBlock] = []
+        matched_edits: list[TextEdit] = []
+        if edits:
+            blocks, matched_edits = self._resolve_blocks_for_edits(
+                doc_id,
+                page_info,
+                edits,
+                user=user,
+                share_token=share_token,
+            )
         with self._heavy_sem, pymupdf.open(entry.pdf_path) as doc:
-            if edits:
-                if entry.pages[page_index].kind == "native":
-                    apply_native_edits(doc, page_index, blocks, edits)
+            if matched_edits:
+                if page_info.kind == "native":
+                    apply_native_edits(doc, page_index, blocks, matched_edits)
                 else:
-                    apply_scanned_edits(doc, page_index, blocks, edits)
+                    apply_scanned_edits(doc, page_index, blocks, matched_edits)
             if overlays:
                 apply_page_overlays(
                     doc[page_index],
@@ -758,11 +809,13 @@ class SessionStore:
                 idx = page_info.page_index
                 page_overlays = [o for o in active_overlays if o.page_index == idx]
                 if edits:
-                    blocks = self.get_page_blocks(
-                        doc_id, idx, user=user, share_token=share_token
+                    blocks, page_edits = self._resolve_blocks_for_edits(
+                        doc_id,
+                        page_info,
+                        edits,
+                        user=user,
+                        share_token=share_token,
                     )
-                    block_ids = {b.id for b in blocks}
-                    page_edits = [e for e in edits if e.block_id in block_ids]
                     if page_edits:
                         if page_info.kind == "native":
                             apply_native_edits(doc, idx, blocks, page_edits)

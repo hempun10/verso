@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useWorkspace } from "@/features/workspace/context/WorkspaceContext";
 import { useEditor } from "../context/EditorContext";
+import { OcrStatusBadge } from "./OcrStatusBadge";
 
 export function EditorBottomBar() {
   const { setShortcutsOpen } = useWorkspace();
@@ -122,6 +123,13 @@ export function EditorBottomBar() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+        </>
+      )}
+
+      {session.currentPage?.kind === "scanned" && (
+        <>
+          <Separator orientation="vertical" className="h-4" />
+          <OcrStatusBadge />
         </>
       )}
 

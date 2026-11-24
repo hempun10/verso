@@ -1,8 +1,12 @@
-.PHONY: install dev-backend dev-frontend test check docker-up
+.PHONY: install fetch-ocr-models dev-backend dev-frontend test check docker-up
 
 install:
 	cd backend && uv sync
 	cd frontend && pnpm install
+	backend/.venv/bin/python scripts/prepare_ocr_models.py
+
+fetch-ocr-models:
+	backend/.venv/bin/python scripts/prepare_ocr_models.py
 
 dev-backend:
 	cd backend && uv run uvicorn editpdf.api:app --reload --port 8000

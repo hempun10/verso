@@ -37,6 +37,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare browser OCR models & WASM assets
+        working-directory: .
+        run: |
+          python3 -m pip install --quiet rapidocr-onnxruntime onnxruntime
+          python3 scripts/prepare_ocr_models.py
+
       - name: Build production bundle
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
