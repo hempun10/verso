@@ -27,7 +27,7 @@ const REC_HEIGHT = 48;
 const CLS_HEIGHT = 48;
 const CLS_WIDTH = 192;
 
-ort.env.wasm.wasmPaths = "/models/ort/";
+// onnxruntime-web/wasm bundles the .mjs loader and resolves the .wasm asset via import.meta.url.
 ort.env.wasm.numThreads = 1;
 
 let sessionsPromise: Promise<Sessions> | null = null;

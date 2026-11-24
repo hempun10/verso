@@ -17,17 +17,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OCR_OUT = ROOT / "frontend" / "public" / "models" / "ocr"
-ORT_OUT = ROOT / "frontend" / "public" / "models" / "ort"
-ORT_SRC = ROOT / "frontend" / "node_modules" / "onnxruntime-web" / "dist"
 
 OCR_FILES = (
     "ch_PP-OCRv4_det_infer.onnx",
     "ch_PP-OCRv4_rec_infer.onnx",
     "ch_ppocr_mobile_v2.0_cls_infer.onnx",
-)
-ORT_FILES = (
-    "ort-wasm-simd-threaded.wasm",
-    "ort-wasm-simd-threaded.mjs",
 )
 
 
@@ -75,7 +69,6 @@ def _extract_character_dict(rec_model: Path, out_txt: Path) -> None:
 def main() -> int:
     src_models = _find_rapidocr_models_dir()
     OCR_OUT.mkdir(parents=True, exist_ok=True)
-    ORT_OUT.mkdir(parents=True, exist_ok=True)
 
     manifest_files: dict[str, dict[str, int | str]] = {}
 
@@ -97,17 +90,6 @@ def main() -> int:
         "sha256": _sha256(dict_path)[:16],
     }
 
-    if not ORT_SRC.is_dir():
-        raise FileNotFoundError(
-            f"Missing onnxruntime-web dist folder at {ORT_SRC}. "
-            "Run `cd frontend && pnpm install` first."
-        )
-    for filename in ORT_FILES:
-        src = ORT_SRC / filename
-        if not src.is_file():
-            raise FileNotFoundError(f"Missing onnxruntime-web asset: {src}")
-        shutil.copy2(src, ORT_OUT / filename)
-
     total_bytes = sum(int(entry["bytes"]) for entry in manifest_files.values())
     manifest = {
         "version": "ppocr-v4-1",
@@ -117,7 +99,7 @@ def main() -> int:
     (OCR_OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(
         f"Prepared browser OCR assets in {OCR_OUT.relative_to(ROOT)} "
-        f"({total_bytes / 1_000_000:.2f} MB) + WASM runtime in {ORT_OUT.relative_to(ROOT)}"
+        f"({total_bytes / 1_000_000:.2f} MB)"
     )
     return 0
 
