@@ -240,3 +240,94 @@ def test_scanned_preview_and_export_skip_server_ocr_with_source_block(
         joined = " ".join(b.text for b in out_blocks).upper()
         assert "6543" in joined
         assert "5000" not in joined
+
+
+def _make_font_scan_pdf(fontname: str, line_text: str, fontsize: float = 14.0) -> bytes:
+    src = pymupdf.open()
+    p = src.new_page(width=612, height=160)
+    p.draw_rect(p.rect, color=(0.98, 0.98, 0.97), fill=(0.98, 0.98, 0.97))
+    p.insert_text(
+        (48, 90), line_text, fontsize=fontsize, fontname=fontname, color=(0.06, 0.06, 0.06)
+    )
+    pix = p.get_pixmap(dpi=250, alpha=False)
+    src.close()
+
+    buf = io.BytesIO()
+    Image.frombytes("RGB", (pix.width, pix.height), pix.samples).save(buf, format="PNG")
+    out = pymupdf.open()
+    sp = out.new_page(width=612, height=160)
+    sp.insert_image(sp.rect, stream=buf.getvalue())
+    raw = out.tobytes()
+    out.close()
+    return raw
+
+
+def test_scanned_serif_and_sans_font_classification():
+    line = "This contract is made between Mrs. Harimaya Pun aged 74"
+    times_pdf = _make_font_scan_pdf("tiro", line)
+    helv_pdf = _make_font_scan_pdf("helv", line)
+
+    with pymupdf.open(stream=times_pdf, filetype="pdf") as t_doc:
+        t_blocks = extract_scanned_blocks(t_doc[0], 0)
+        assert t_blocks
+        assert t_blocks[0].style.serif is True
+        assert t_blocks[0].style.font_family == "times"
+
+    with pymupdf.open(stream=helv_pdf, filetype="pdf") as h_doc:
+        h_blocks = extract_scanned_blocks(h_doc[0], 0)
+        assert h_blocks
+        assert h_blocks[0].style.serif is False
+        assert h_blocks[0].style.font_family == "helvetica"
+
+
+def test_scanned_surgical_word_edit_preserves_untouched_xerox_pixels():
+    line = "Agreement signed between Alpha Corp aged 74 on Monday"
+    raw = _make_font_scan_pdf("tiro", line, fontsize=15.0)
+    with pymupdf.open(stream=raw, filetype="pdf") as doc:
+        orig_pix = doc[0].get_pixmap(dpi=250, alpha=False)
+        orig_arr = np.frombuffer(orig_pix.samples, dtype=np.uint8).reshape(
+            orig_pix.height, orig_pix.width, orig_pix.n
+        ).copy()
+
+        blocks = extract_scanned_blocks(doc[0], 0)
+        assert blocks
+        target = blocks[0]
+        assert "74" in target.text
+
+        edited_text = target.text.replace("74", "82")
+        apply_scanned_edits(
+            doc,
+            0,
+            blocks,
+            [TextEdit(block_id=target.id, new_text=edited_text)],
+        )
+        new_pix = doc[0].get_pixmap(dpi=250, alpha=False)
+        new_arr = np.frombuffer(new_pix.samples, dtype=np.uint8).reshape(
+            new_pix.height, new_pix.width, new_pix.n
+        )
+        # Untouched prefix ("Agreement signed") on the left third must remain pixel-identical.
+        left_end = int(orig_arr.shape[1] * 0.30)
+        assert np.array_equal(orig_arr[:, :left_end, :], new_arr[:, :left_end, :])
+
+        out_blocks = extract_scanned_blocks(doc[0], 0)
+        joined = " ".join(b.text for b in out_blocks)
+        assert "82" in joined
+        assert "74" not in joined
+
+
+def test_scanned_edit_longer_ending_word_not_clipped():
+    line = "Issued Date 1988"
+    raw = _make_font_scan_pdf("tiro", line, fontsize=16.0)
+    with pymupdf.open(stream=raw, filetype="pdf") as doc:
+        blocks = extract_scanned_blocks(doc[0], 0)
+        assert blocks
+        target = blocks[0]
+        apply_scanned_edits(
+            doc,
+            0,
+            blocks,
+            [TextEdit(block_id=target.id, new_text="Issued Date 1988/03/06")],
+        )
+        out_blocks = extract_scanned_blocks(doc[0], 0)
+        joined = " ".join(b.text for b in out_blocks)
+        assert "1988/03/06" in joined

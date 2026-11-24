@@ -187,7 +187,7 @@ async function runOcrOnImage(req: RunRequest): Promise<TextBlock[]> {
       const y0Pt = box.y0 * ptPerPxY;
       const x1Pt = box.x1 * ptPerPxX;
       const y1Pt = box.y1 * ptPerPxY;
-      const style = estimateInkStyle(
+      const { style, baselineFrac } = estimateInkStyle(
         cropPixels.data,
         cw,
         ch,
@@ -195,8 +195,7 @@ async function runOcrOnImage(req: RunRequest): Promise<TextBlock[]> {
         text,
         confidence,
       );
-      const hasDescender = /[gjpqy]/.test(text);
-      const baselineYPt = y1Pt - (y1Pt - y0Pt) * (hasDescender ? 0.2 : 0.06);
+      const baselineYPt = y0Pt + (y1Pt - y0Pt) * baselineFrac;
 
       blocks.push({
         id: `p${req.pageIndex}_s${blocks.length}`,
